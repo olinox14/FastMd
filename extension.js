@@ -96,8 +96,9 @@ function activate(context) {
 
 	// ctrl+enter
 	function addLinebreak() {
-		replaceSelection(selectedText() + '  ');
-		movePosition(0,2);
+		editor().edit((edit) => {
+			edit.insert(selection().end, '  ');
+		} )
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.addLinebreak', addLinebreak));
 
@@ -110,13 +111,24 @@ function activate(context) {
 
 	// ctrl+h
 	function headerUp() {
-		vscode.window.showInformationMessage('up');
+		var line = editor().document.lineAt(position().line);
+		if (!line.text.startsWith('#####')){
+			editor().edit((edit) => {
+				return edit.insert(new vscode.Position(position().line, 0), (line.text.startsWith('#') ? '#' : '# '));
+			} )
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.headerUp', headerUp));
 
 	// ctrl+shift+h
 	function headerDown() {
-		vscode.window.showInformationMessage('down');
+		var line = editor().document.lineAt(position().line);
+		if (line.text.startsWith('#')){
+			editor().edit((edit) => {
+				return edit.delete(new vscode.Range(new vscode.Position(position().line, 0), 
+								   new vscode.Position(position().line, (line.text.startsWith('# ') ? 2 : 1))));
+			} )
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.headerDown', headerDown));
 	
