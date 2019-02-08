@@ -126,41 +126,51 @@ function activate(context) {
 		if (line.text.startsWith('#')){
 			editor().edit((edit) => {
 				return edit.delete(new vscode.Range(new vscode.Position(position().line, 0), 
-								   new vscode.Position(position().line, (line.text.startsWith('# ') ? 2 : 1))));
+								                    new vscode.Position(position().line, (line.text.startsWith('# ') ? 2 : 1))));
 			} )
 		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.headerDown', headerDown));
 	
-	// ctrl+h 1
-	function toggleH1() {
-		vscode.window.showInformationMessage('h1');
+	function setHeader(level) {
+		var line = editor().document.lineAt(position().line);
+		editor().edit((edit) => {
+			return edit.replace(new vscode.Range(new vscode.Position(position().line, 0), 
+												 new vscode.Position(position().line, 
+												                     line.text.search(/[^\s#]/))), 
+								'#'.repeat(level) + ' ');
+		});
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleH1', toggleH1));
+
+	// ctrl+shift+1
+	function setH1() {
+		setHeader(1);
+	}
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH1', setH1));
 	
 	// ctrl+h 2
-	function toggleH2() {
-		vscode.window.showInformationMessage('h2');
+	function setH2() {
+		setHeader(2);
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleH2', toggleH2));
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH2', setH2));
 	
 	// ctrl+h 3
-	function toggleH3() {
-		vscode.window.showInformationMessage('h3');
+	function setH3() {
+		setHeader(3);
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleH3', toggleH3));
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH3', setH3));
 	
 	// ctrl+h 4
-	function toggleH4() {
-		vscode.window.showInformationMessage('h4');
+	function setH4() {
+		setHeader(4);
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleH4', toggleH4));
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH4', setH4));
 	
 	// ctrl+h 5
-	function toggleH5() {
-		vscode.window.showInformationMessage('h5');
+	function setH5() {
+		setHeader(5);
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleH5', toggleH5));
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH5', setH5));
 	
 	// ctrl+i
 	function toggleItalic() {
