@@ -175,9 +175,7 @@ function activate(context) {
 	// ctrl+i
 	function toggleItalic() {
 		// permettre de choisir le symbole dans les params
-		// si texte selectionné et non formatté: entoure avec le symbole
-		// si texte selectionné et déjà formatté: retire les symbole
-		// si curseur entouré d'espaces: ajoute un double symbole et place le curseur au centre
+		// voir à mieux prendre en compte les paramètres spéciaux (inclure ou exclure selon les cas)
 		extendSelection(/\S+/);
 		toggleSurrounding('*');
 	}
@@ -185,18 +183,13 @@ function activate(context) {
 	
 	// ctrl+b
 	function toggleBold() {
+		// voir à mieux prendre en compte les paramètres spéciaux (inclure ou exclure selon les cas)
 		extendSelection(/\S+/);
 		toggleSurrounding('**');
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleBold', toggleBold));
 	
-	// ctrl+b ctrl+i
-	function toggleCombinedEmphasis() {
-		vscode.window.showInformationMessage('combined');
-	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleCombinedEmphasis', toggleCombinedEmphasis));
-	
-	// ctrl+alt+e
+	// ctrl+alt+s
 	function toggleStrikethrough() {
 		extendSelection(/\S+/);
 		toggleSurrounding('~~');
@@ -263,6 +256,18 @@ function activate(context) {
 	}	
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleOList', toggleOList));
 	
+	// ctrl++
+	function toggleChecklist() {
+		vscode.window.showInformationMessage('checklist');
+	}
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleChecklist', toggleChecklist));
+
+	// alt+c
+	function check() {
+		vscode.window.showInformationMessage('check');
+	}
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.check', check));
+
 	// ctrl+t
 	function insertTable() {
 		vscode.window.showInformationMessage('table');
@@ -280,7 +285,7 @@ function activate(context) {
 		vscode.window.showInformationMessage('add-row');
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.tableAddRow', tableAddRow));
-	
+
 	// ctrl+alt+p
 	function togglePreview() {
 		vscode.window.showInformationMessage('preview');
