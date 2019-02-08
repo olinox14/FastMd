@@ -1,5 +1,6 @@
 {
 	"name": "fastmd",
+	"publisher": "olinox14",
 	"displayName": "FastMd",
 	"description": "Fast Markdown formatting for Visual Studio Code",
 	"version": "0.0.1",
@@ -9,16 +10,48 @@
 	"categories": [
 		"Other"
 	],
+	"keywords": [
+		"markdown",
+		"formatting"
+    ],
 	"activationEvents": [
-		"onCommand:extension.helloWorld"
+		"*"
 	],
 	"main": "./extension.js",
 	"contributes": {
 		"commands": [
-			{
-				"command": "extension.helloWorld",
-				"title": "Hello World"
-			}
+            {
+                "command": "fastmd.toggleItalic",
+                "title": "Toggle Italic",
+                "category": "Markdown Shortcuts"
+            }
+		],
+        "keybindings": [
+			{"command": "fastmd.addLinebreak", "key": "ctrl+enter", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.escape", "key": "ctrl+/", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.headerUp", "key": "ctrl+h", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.headerDown", "key": "ctrl+shift+h", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleH1", "key": "ctrl+shift+1", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleH2", "key": "ctrl+shift+2", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleH3", "key": "ctrl+shift+3", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleH4", "key": "ctrl+shift+4", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleH5", "key": "ctrl+shift+5", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleItalic", "key": "ctrl+i", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleBold", "key": "ctrl+b", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleCombinedEmphasis", "key": "ctrl+e", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleStrikethrough", "key": "ctrl+alt+e", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleLink", "key": "ctrl+l", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleNumRefLink", "key": "ctrl+num", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleImageLink", "key": "ctrl+g", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleBlockquote", "key": "ctrl+q", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.insertHRule", "key": "ctrl+r", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleCodeblock", "key": "ctrl+k", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleUList", "key": "ctrl+u", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.toggleOList", "key": "ctrl+o", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.insertTable", "key": "ctrl+t", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.tableAddCol", "key": "ctrl+right", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.tableAddRow", "key": "ctrl+down", "when": "editorTextFocus && editorLangId == 'markdown'"},
+			{"command": "fastmd.togglePreview", "key": "ctrl+alt+p", "when": "editorTextFocus && editorLangId == 'markdown'"}
 		]
 	},
 	"scripts": {
