@@ -4,11 +4,14 @@ const vscode = require('vscode');
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-
+ 
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
+
+	const cleverUnlink = true;  // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
+	const autoPasteLinks = true; // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
 
 	// return the current text editor
 	function editor() { return vscode.window.activeTextEditor }
@@ -40,7 +43,14 @@ function activate(context) {
 		var newSel = extendedSelection(pattern);
 		if (newSel) {
 			editor().selection = newSel; 
-		};
+		}
+	}
+
+	function extendSelectionIfNone(pattern) {
+		if (selection().isEmpty) {
+			return extendSelection(pattern);
+		}
+		return selection();
 	}
 
 	// return the text with special characters regex escaped 
@@ -51,47 +61,6 @@ function activate(context) {
 	// return the text with special characters markdown escaped
 	function mdEscape(text) {
 		return text.replace(/[-[\]{}()*+.\\#`_!]/g, '\\$&');
-	}
-
-	function replaceSelection(with_str) {
-		editor().edit(edit => edit.replace(selection(), (() => with_str)()));
-	}
-
-	// return true if the selection is surrounded by 'with_str'
-	function isSurroundedWith(with_str) {
-		var rx = new RegExp('^' + reEscape(with_str) + '(.*)' + reEscape(with_str) + '$');
-		return rx.test(selectedText())
-	}
-
-	// surround the current selection with 'with_str'
-	function surround(with_str) {
-		var selected = selectedText()
-		if (selected.length > 0) {
-			return replaceSelection(with_str + selected + with_str);
-		}
-		else {
-			var newPos = movePosition(0, with_str.length);
-			return editor().edit((edit) => {
-				edit.insert(selection().start, with_str + with_str);
-			} ).then(() => {
-				editor().selection = new vscode.Selection(newPos, newPos)
-			} )
-		}
-	}
-
-	// remove the 'with_str' that is surrounding the selection
-	function removeSurrounding(with_str) {
-		var rx = new RegExp('^' + reEscape(with_str) + '(.*)' + reEscape(with_str) + '$');
-		return replaceSelection(selectedText().match(rx)[1]);
-	}
-
-	function toggleSurrounding(with_str) {
-		if (isSurroundedWith(with_str)) {
-			return removeSurrounding(with_str)
-		}
-		else {
-			return surround(with_str);
-		}
 	}
 
 	// ctrl+enter
@@ -105,7 +74,7 @@ function activate(context) {
 	// ctrl+/
 	// auto-escape on formatted text?
 	function escape() {
-		return replaceSelection(mdEscape(selectedText()));
+		return editor().edit(edit => edit.replace(selection(), (() => mdEscape(selectedText()))()));
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.escape', escape));
 
@@ -176,29 +145,177 @@ function activate(context) {
 	function toggleItalic() {
 		// permettre de choisir le symbole dans les params
 		// voir à mieux prendre en compte les paramètres spéciaux (inclure ou exclure selon les cas)
-		extendSelection(/\S+/);
-		toggleSurrounding('*');
+		//extendSelection(/\S+/);
+		//toggleSurrounding('*');
+
+		var word = editor().document.getWordRangeAtPosition(position(), /\S+/);
+		var wordText = editor().document.getText(word);
+        if (wordText.startsWith('*') && wordText.endsWith('*')) {
+			editor().edit((edit) => {
+				edit.delete(new vscode.Range(new vscode.Position(position().line, word.end.character - 1), 
+											 new vscode.Position(position().line, word.end.character)));
+				return edit.delete(new vscode.Range(new vscode.Position(position().line, word.start.character), 
+								                    new vscode.Position(position().line, word.start.character + 1)));
+			} )
+		}
+		else {
+			editor().edit((edit) => {
+				edit.insert(new vscode.Position(position().line, word.start.character), '*');
+				return edit.insert(new vscode.Position(position().line, word.end.character), '*');
+			} )
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleItalic', toggleItalic));
 	
 	// ctrl+b
 	function toggleBold() {
 		// voir à mieux prendre en compte les paramètres spéciaux (inclure ou exclure selon les cas)
-		extendSelection(/\S+/);
-		toggleSurrounding('**');
+		var word = editor().document.getWordRangeAtPosition(position(), /\S+/);
+		var wordText = editor().document.getText(word);
+        if (wordText.startsWith('**') && wordText.endsWith('**')) {
+			editor().edit((edit) => {
+				edit.delete(new vscode.Range(new vscode.Position(position().line, word.end.character - 2), 
+											 new vscode.Position(position().line, word.end.character)));
+				return edit.delete(new vscode.Range(new vscode.Position(position().line, word.start.character), 
+								                    new vscode.Position(position().line, word.start.character + 2)));
+			} )
+		}
+		else {
+			editor().edit((edit) => {
+				edit.insert(new vscode.Position(position().line, word.start.character), '**');
+				return edit.insert(new vscode.Position(position().line, word.end.character), '**');
+			} )
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleBold', toggleBold));
 	
 	// ctrl+alt+s
 	function toggleStrikethrough() {
-		extendSelection(/\S+/);
-		toggleSurrounding('~~');
+		var word = editor().document.getWordRangeAtPosition(position(), /\S+/);
+		var wordText = editor().document.getText(word);
+        if (wordText.startsWith('~~') && wordText.endsWith('~~')) {
+			editor().edit((edit) => {
+				edit.delete(new vscode.Range(new vscode.Position(position().line, word.end.character - 2), 
+											 new vscode.Position(position().line, word.end.character)));
+				return edit.delete(new vscode.Range(new vscode.Position(position().line, word.start.character), 
+								                    new vscode.Position(position().line, word.start.character + 2)));
+			} )
+		}
+		else {
+			editor().edit((edit) => {
+				edit.insert(new vscode.Position(position().line, word.start.character), '~~');
+				return edit.insert(new vscode.Position(position().line, word.end.character), '~~');
+			} )
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleStrikethrough', toggleStrikethrough));
 	
 	// ctrl+l
+	const srx_url = "((([A-Za-z]{3,9}:(?:\\/\\/)?)(?:[\\-;:&=\\+\\$,\w]+@)?[A-Za-z0-9\\.\\-]+|(?:www\\.|[\\-;:&=\\+\\$,\w]+@)[A-Za-z0-9\\.\\-]+)((?:\\/[\\+~%\\/\\.\\w\\-_]*)?\\??(?:[\\-\\+=&;%@\\.\w_]*)#?(?:[\\.\\!\\/\\\\\\w]*))?)";
 	function toggleLink() {
-		vscode.window.showInformationMessage('link');
+
+		// # Patterns and behaviours :
+		// > (% is the expected position of the cursor after the operation)
+		// -----------------------------
+		// A. [abc](url) => do nothing
+		// B. [abc]() => abc%  // abc can be an empty string
+		// C. [](url) => <url>%
+		// D. <url> => url%
+		// E. url => [%](url)
+		// F1. abc => [abc](%)     // if none url in the clipboard
+		// F2. abc => [abc](url)%  // if an url was found in the clipboard
+
+		function getWordRange() {
+			if (!selection().isEmpty) {
+				return selection();
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /\[(.*)\]\((.*)\)/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /<(.+)>/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			return editor().document.getWordRangeAtPosition(position(), /\S+/);
+		}
+
+		var word = getWordRange()
+		var wordText = editor().document.getText(word);
+		var match;
+
+		match = wordText.match(/^\[(.+)\]\((.+)\)$/);
+		if (match) {
+			// there is a title and an url: do nothing
+			if (cleverUnlink) {
+				vscode.env.clipboard.writeText(match[2]).then();
+				editor().edit((edit) => {
+					return edit.replace(word, match[1]);
+				} )
+				setPosition(position().line, word.start.character + match[1].length + 1);
+				return
+			} else {
+				return;
+			}
+		}
+
+		match = wordText.match(/^\[(.*)\]\(\)$/);
+		if (match) {
+			// [title]() pattern
+			editor().edit((edit) => {
+				return edit.replace(word, match[1]);
+			} )
+			setPosition(position().line, word.end.character - 1)
+			return
+		}
+
+		match = wordText.match(/^\[\]\((.+)\)$/);
+		if (match) {
+			// [](url) pattern
+			editor().edit((edit) => {
+				return edit.replace(word, '<' + match[1] + '>');
+			} )
+			setPosition(position().line, word.end.character)
+			return
+		}
+
+		match = wordText.match(new RegExp('^<(' + srx_url + ')>$'));
+		if (match) {
+			// url already <url> formatted, remove the <>
+			editor().edit((edit) => {
+				return edit.replace(word, match[1])
+			} )
+			setPosition(position().line, word.end.character)
+			return
+		}
+
+		match = wordText.match(new RegExp('^' + srx_url + '$'))
+		if (match) {
+			// unformatted url , apply the [](url) format
+			editor().edit((edit) => {
+				return edit.replace(word, '[]('+wordText+')');
+			} )
+			setPosition(position().line, word.start.character + 1)
+			return
+		}
+
+		// non-url formatted word: apply the [title](url) format, with word as title
+		editor().edit((edit) => {
+			return edit.replace(word, '['+wordText+']()');
+		} )
+		setPosition(position().line, word.end.character + 3);
+
+		if (autoPasteLinks) {
+			vscode.env.clipboard.readText().then((content)=>{
+				if (content.match(new RegExp('^' + srx_url + '$'))) {
+					editor().edit((edit) => {
+						return edit.insert(position(), content);
+					} )
+					setPosition(position().line, word.end.character + content.length + 4);
+					vscode.env.clipboard.writeText('').then();
+				}
+			});
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleLink', toggleLink));
 	
