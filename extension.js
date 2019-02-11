@@ -10,6 +10,7 @@ const vscode = require('vscode');
  */
 function activate(context) {
 
+	const italicSymbol = '*';
 	const cleverUnlink = true;  // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
 	const autoPasteLinks = true; // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
 
@@ -66,7 +67,7 @@ function activate(context) {
 	// ctrl+enter
 	function addLinebreak() {
 		editor().edit((edit) => {
-			edit.insert(selection().end, '  ');
+			edit.insert(selection().end, '  \n');
 		} )
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.addLinebreak', addLinebreak));
@@ -144,68 +145,108 @@ function activate(context) {
 	// ctrl+i
 	function toggleItalic() {
 		// permettre de choisir le symbole dans les params
-		// voir à mieux prendre en compte les paramètres spéciaux (inclure ou exclure selon les cas)
-		//extendSelection(/\S+/);
-		//toggleSurrounding('*');
+		function getWordRange() {
+			if (!selection().isEmpty) {
+				return selection();
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /\*(\S*)\*/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			return editor().document.getWordRangeAtPosition(position(), /\S+/);
+		}
 
-		var word = editor().document.getWordRangeAtPosition(position(), /\S+/);
+		var word = getWordRange();
 		var wordText = editor().document.getText(word);
-        if (wordText.startsWith('*') && wordText.endsWith('*')) {
+		var match = wordText.match(/^\*(\S*)\*$/)
+        if (match) {
 			editor().edit((edit) => {
-				edit.delete(new vscode.Range(new vscode.Position(position().line, word.end.character - 1), 
-											 new vscode.Position(position().line, word.end.character)));
-				return edit.delete(new vscode.Range(new vscode.Position(position().line, word.start.character), 
-								                    new vscode.Position(position().line, word.start.character + 1)));
+				return edit.replace(word, match[1]);
 			} )
+			setPosition(position().line, position().character - 1);
 		}
 		else {
 			editor().edit((edit) => {
-				edit.insert(new vscode.Position(position().line, word.start.character), '*');
-				return edit.insert(new vscode.Position(position().line, word.end.character), '*');
+				return edit.replace(word, '*' + wordText + '*');
 			} )
+			if (position().line == word.end.line && position().character == word.end.character) {
+				setPosition(position().line, position().character + 2);
+			}
+			else {
+				setPosition(position().line, position().character + 1);
+			}
 		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleItalic', toggleItalic));
 	
 	// ctrl+b
 	function toggleBold() {
-		// voir à mieux prendre en compte les paramètres spéciaux (inclure ou exclure selon les cas)
-		var word = editor().document.getWordRangeAtPosition(position(), /\S+/);
+		function getWordRange() {
+			if (!selection().isEmpty) {
+				return selection();
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /\*\*(\S*)\*\*/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			return editor().document.getWordRangeAtPosition(position(), /\S+/);
+		}
+
+		var word = getWordRange();
 		var wordText = editor().document.getText(word);
-        if (wordText.startsWith('**') && wordText.endsWith('**')) {
+		var match = wordText.match(/^\*\*(\S*)\*\*$/)
+        if (match) {
 			editor().edit((edit) => {
-				edit.delete(new vscode.Range(new vscode.Position(position().line, word.end.character - 2), 
-											 new vscode.Position(position().line, word.end.character)));
-				return edit.delete(new vscode.Range(new vscode.Position(position().line, word.start.character), 
-								                    new vscode.Position(position().line, word.start.character + 2)));
+				return edit.replace(word, match[1]);
 			} )
+			setPosition(position().line, position().character - 2);
 		}
 		else {
 			editor().edit((edit) => {
-				edit.insert(new vscode.Position(position().line, word.start.character), '**');
-				return edit.insert(new vscode.Position(position().line, word.end.character), '**');
+				return edit.replace(word, '**' + wordText + '**');
 			} )
+			if (position().line == word.end.line && position().character == word.end.character) {
+				setPosition(position().line, position().character + 4);
+			}
+			else {
+				setPosition(position().line, position().character + 2);
+			}
 		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleBold', toggleBold));
 	
 	// ctrl+alt+s
 	function toggleStrikethrough() {
-		var word = editor().document.getWordRangeAtPosition(position(), /\S+/);
+		function getWordRange() {
+			if (!selection().isEmpty) {
+				return selection();
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /~~(\S*)~~/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			return editor().document.getWordRangeAtPosition(position(), /\S+/);
+		}
+
+		var word = getWordRange();
 		var wordText = editor().document.getText(word);
-        if (wordText.startsWith('~~') && wordText.endsWith('~~')) {
+		var match = wordText.match(/^~~(\S*)~~$/)
+        if (match) {
 			editor().edit((edit) => {
-				edit.delete(new vscode.Range(new vscode.Position(position().line, word.end.character - 2), 
-											 new vscode.Position(position().line, word.end.character)));
-				return edit.delete(new vscode.Range(new vscode.Position(position().line, word.start.character), 
-								                    new vscode.Position(position().line, word.start.character + 2)));
+				return edit.replace(word, match[1]);
 			} )
+			setPosition(position().line, position().character - 2);
 		}
 		else {
 			editor().edit((edit) => {
-				edit.insert(new vscode.Position(position().line, word.start.character), '~~');
-				return edit.insert(new vscode.Position(position().line, word.end.character), '~~');
+				return edit.replace(word, '~~' + wordText + '~~');
 			} )
+			if (position().line == word.end.line && position().character == word.end.character) {
+				setPosition(position().line, position().character + 4);
+			}
+			else {
+				setPosition(position().line, position().character + 2);
+			}
 		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleStrikethrough', toggleStrikethrough));
