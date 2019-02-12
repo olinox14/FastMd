@@ -13,46 +13,190 @@
 	"keywords": [
 		"markdown",
 		"formatting"
-    ],
+	],
 	"activationEvents": [
 		"*"
 	],
 	"main": "./extension.js",
 	"contributes": {
 		"commands": [
-            {
-                "command": "fastmd.toggleItalic",
-                "title": "Toggle Italic",
-                "category": "Markdown Shortcuts"
-            }
+			{
+				"command": "fastmd.toggleItalic",
+				"title": "Toggle Italic",
+				"category": "Markdown Shortcuts"
+			}
 		],
-        "keybindings": [
-			{"command": "fastmd.addLinebreak", "key": "ctrl+enter", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.escape", "key": "ctrl+/", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.headerUp", "key": "ctrl+h", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.headerDown", "key": "ctrl+shift+h", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.setH1", "key": "ctrl+shift+1", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.setH2", "key": "ctrl+shift+2", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.setH3", "key": "ctrl+shift+3", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.setH4", "key": "ctrl+shift+4", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.setH5", "key": "ctrl+shift+5", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.toggleItalic", "key": "ctrl+i", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.toggleBold", "key": "ctrl+b", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.toggleStrikethrough", "key": "ctrl+alt+s", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.toggleLink", "key": "ctrl+l", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.toggleNumRefLink", "key": "ctrl+num", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.toggleImageLink", "key": "ctrl+g", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.toggleBlockquote", "key": "ctrl+q", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.insertHRule", "key": "ctrl+r", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.toggleCodeblock", "key": "ctrl+k", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.toggleUList", "key": "ctrl+u", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.toggleOList", "key": "ctrl+o", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.toggleChecklist", "key": "ctrl++", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.check", "key": "alt+c", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.insertTable", "key": "ctrl+t", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.tableAddCol", "key": "ctrl+right", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.tableAddRow", "key": "ctrl+down", "when": "editorTextFocus && editorLangId == 'markdown'"},
-			{"command": "fastmd.togglePreview", "key": "ctrl+alt+p", "when": "editorTextFocus && editorLangId == 'markdown'"}
+		"keybindings": [
+			{
+				"command": "fastmd.addLinebreak",
+				"key": "ctrl+enter",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.escape",
+				"key": "ctrl+/",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.headerUp",
+				"key": "ctrl+h",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.headerDown",
+				"key": "ctrl+shift+h",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.setH1",
+				"key": "ctrl+shift+1",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.setH2",
+				"key": "ctrl+shift+2",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.setH3",
+				"key": "ctrl+shift+3",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.setH4",
+				"key": "ctrl+shift+4",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.setH5",
+				"key": "ctrl+shift+5",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleItalic",
+				"key": "ctrl+i",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleBold",
+				"key": "ctrl+b",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleStrikethrough",
+				"key": "ctrl+alt+s",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleLink",
+				"key": "ctrl+l",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleNumRefLink1",
+				"key": "ctrl+1",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleNumRefLink2",
+				"key": "ctrl+2",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleNumRefLink3",
+				"key": "ctrl+3",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleNumRefLink4",
+				"key": "ctrl+4",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleNumRefLink5",
+				"key": "ctrl+5",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleNumRefLink6",
+				"key": "ctrl+6",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleNumRefLink7",
+				"key": "ctrl+7",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleNumRefLink8",
+				"key": "ctrl+8",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleNumRefLink9",
+				"key": "ctrl+9",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleImageLink",
+				"key": "ctrl+g",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleBlockquote",
+				"key": "ctrl+q",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.insertHRule",
+				"key": "ctrl+r",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleCodeblock",
+				"key": "ctrl+k",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleUList",
+				"key": "ctrl+u",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleOList",
+				"key": "ctrl+o",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.toggleChecklist",
+				"key": "ctrl++",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.check",
+				"key": "alt+c",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.insertTable",
+				"key": "ctrl+t",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.tableAddCol",
+				"key": "ctrl+right",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.tableAddRow",
+				"key": "ctrl+down",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fastmd.togglePreview",
+				"key": "ctrl+alt+p",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			}
 		]
 	},
 	"scripts": {
@@ -60,10 +204,13 @@
 		"test": "node ./node_modules/vscode/bin/test"
 	},
 	"devDependencies": {
-		"typescript": "^3.3.1",
-		"vscode": "^1.1.28",
+		"@types/mocha": "^2.2.42",
+		"@types/node": "^10.12.24",
 		"eslint": "^5.13.0",
-		"@types/node": "^10.12.21",
-		"@types/mocha": "^2.2.42"
+		"typescript": "^3.3.3",
+		"vscode": "^1.1.28"
+	},
+	"dependencies": {
+		"copy-paste": "^1.3.0"
 	}
 }
