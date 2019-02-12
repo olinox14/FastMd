@@ -287,7 +287,7 @@ function activate(context) {
 			if (typeof(word) != 'undefined') {
 				return word;
 			}
-			word = editor().document.getWordRangeAtPosition(position(), /\S*/);
+			word = editor().document.getWordRangeAtPosition(position(), /\S+/);
 			if (typeof(word) != 'undefined') {
 				return word;
 			}
@@ -605,19 +605,149 @@ function activate(context) {
 
 	// ctrl+g
 	function toggleImageLink() {
-		vscode.window.showInformationMessage('img-link');
+		// # Patterns and behaviours :
+		// > (% is the expected position of the cursor after the operation)
+		// -----------------------------
+		// A. [abc](url) => ![abc](url)%
+		// B. [abc]() => ![abc](%)
+		// C. abc => ![abc](%)
+		// D. url => ![%](url)
+		// E. <url> => ![%](url)
+		// F. ![abc](url) => [abc](url)%
+
+		function getWordRange() {
+			if (!selection().isEmpty) {
+				return selection();
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /!\[(.*)\]\((.*)\)/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /\[(.*)\]\((.*)\)/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /<(.+)>/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /\[(.*)\]\[(.*)\]/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			word = editor().document.getWordRangeAtPosition(position(), new RegExp(srx_url));
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /\S+/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			return selection();
+		}
+
+		var word = getWordRange()
+		var wordText = editor().document.getText(word);
+		var match;
+
+		match = wordText.match(/^!(\[.*\]\(.*\)$)/);
+		if (match) {
+			vscode.env.clipboard.writeText(match[2]).then();
+			editor().edit((edit) => {
+				return edit.replace(word, match[1]);
+			} )
+			setPosition(position().line, word.end.character + 1);
+			return
+		}
+
+		match = wordText.match(/^\[(.*)\]\((.*)\)$/);
+		if (match) {
+			editor().edit((edit) => {
+				return edit.replace(word, '!' + wordText);
+			} )
+			if (match[1].length > 0) {
+				setPosition(position().line, word.end.character + 1);
+			}
+			else {
+				setPosition(position().line, word.start.character + 2);
+			}
+			return
+		}
+
+		match = wordText.match(/^\[(.*)\]\[(.+)\]$/);
+		if (match) {
+			// [abc][ref] pattern: ignore
+			return
+		}
+
+		match = wordText.match(new RegExp('^<(' + srx_url + ')>$'));
+		if (match) {
+			// url already <url> formatted
+			editor().edit((edit) => {
+				return edit.replace(word, '![](' + match[1] + ')')
+			} )
+			setPosition(position().line, word.start.character + 2)
+			return
+		}
+
+		match = wordText.match(new RegExp('^' + srx_url + '$'))
+		if (match) {
+			// unformatted url
+			editor().edit((edit) => {
+				return edit.replace(word, '![](' + match[1] + ')')
+			} )
+			setPosition(position().line, word.start.character + 2)
+			return
+		}
+
+		// non-url formatted word: apply the [title](url) format, with word as title
+		editor().edit((edit) => {
+			return edit.replace(word, '!['+wordText+']()');
+		} )
+		setPosition(position().line, word.end.character + 4);
+
+		if (autoPasteLinks) {
+			vscode.env.clipboard.readText().then((content)=>{
+				content = content.trim();
+				if (content.match(new RegExp('^' + srx_url + '$'))) {
+					editor().edit((edit) => {
+						return edit.insert(position(), content);
+					} )
+					setPosition(position().line, word.end.character + content.length + 5);
+					vscode.env.clipboard.writeText('').then();
+				}
+			});
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleImageLink', toggleImageLink));
 	
 	// ctrl+q
 	function toggleBlockquote() {
-		vscode.window.showInformationMessage('quote');
+		var line = editor().document.lineAt(position().line);
+		var rx = /(>\s?).*/
+		var match = line.text.match(rx)
+		if (match) {
+			editor().edit((edit) => {
+				return edit.delete(new vscode.Range(new vscode.Position(position().line, 0), new vscode.Position(position().line, match[1].length)))
+			} )
+			setPosition(position().line, Math.min(0, position().character - match[1].length))
+		}
+		else {
+			editor().edit((edit) => {
+				return edit.insert(new vscode.Position(position().line, 0), '> ')
+			} )
+			setPosition(position().line, position().character + 2)
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleBlockquote', toggleBlockquote));
 	
 	// ctrl+r
 	function insertHRule() {
-		vscode.window.showInformationMessage('hrule');
+		var line = editor().document.lineAt(position().line);
+		editor().edit((edit) => {
+			return edit.insert(new vscode.Position(position().line, line.text.length), '\n\n--------\n')
+		} )
+		setPosition(position().line + 4, 0)
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.insertHRule', insertHRule));
 	
