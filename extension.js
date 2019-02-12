@@ -11,6 +11,7 @@ const vscode = require('vscode');
 function activate(context) {
 
 	const italicSymbol = '*';
+	const uListSymbol = '*';
 	const cleverUnlink = true;  // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
 	const autoPasteLinks = true; // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
 	const autoRef = true; // Move the url at the bottom of the document when numeric link reference formatting is applied
@@ -825,39 +826,76 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleCodeblock', toggleCodeblock));
 	
-	// none
-	function togglePyCodeblock() {
-		vscode.window.showInformationMessage('codeblock');
-	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.togglePyCodeblock', togglePyCodeblock));
-	
-	// none
-	function toggleJsCodeblock() {
-		vscode.window.showInformationMessage('codeblock');
-	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleJsCodeblock', toggleJsCodeblock));
-	
 	/// ctrl+u
 	function toggleUList() {
-		vscode.window.showInformationMessage('list');
+		var sel = selection();
+		var selected_text = editor().document.getText(sel).trim();
+
+		var match = selected_text.match(/((?: ?[\*+-] ?)(.*))+/m)
+		if (match) {
+			editor().edit((edit) => {
+				edit.replace(sel, selected_text.replace(/^ ?[\*+-] ?/m, '').replace(/\n ?[\*+-] ?/m, '\n'));
+			})
+		} else {
+			editor().edit((edit) => {
+				edit.replace(sel, '\n ' + uListSymbol + ' ' + selected_text.replace('\n', '\n ' + uListSymbol + ' ') + '\n\n');
+			})
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleUList', toggleUList));
 	
 	// ctrl+o
 	function toggleOList() {
-		vscode.window.showInformationMessage('num-list');
+		var sel = selection();
+		var selected_text = editor().document.getText(sel).trim();
+
+		var match = selected_text.match(/((?: ?\d\. ?)(.*))+/m)
+		if (match) {
+			editor().edit((edit) => {
+				edit.replace(sel, selected_text.replace(/^ ?\d\. ?/m, '').replace(/\n ?\d\. ?/m, '\n'));
+			})
+		} else {
+			editor().edit((edit) => {
+				edit.replace(sel, '\n 1. ' + selected_text.replace('\n', '\n 1. ') + '\n\n');
+			})
+		}
 	}	
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleOList', toggleOList));
 	
 	// ctrl++
 	function toggleChecklist() {
-		vscode.window.showInformationMessage('checklist');
+		var sel = selection();
+		var selected_text = editor().document.getText(sel).trim();
+
+		var match = selected_text.match(/((?: ?\[[x ]\] ?)(.*))+/m)
+		if (match) {
+			editor().edit((edit) => {
+				edit.replace(sel, selected_text.replace(/^ ?\[[x ]\] ?/m, '').replace(/\n ?\[[x ]\] ?/m, '\n'));
+			})
+		} else {
+			editor().edit((edit) => {
+				edit.replace(sel, '\n [ ] ' + selected_text.replace('\n', '\n [ ] ') + '\n\n');
+			})
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleChecklist', toggleChecklist));
 
 	// alt+c
 	function check() {
-		vscode.window.showInformationMessage('check');
+		var line = editor().document.lineAt(position().line);
+		var match = line.text.match(/^( +)\[([x ])\]( +)(.*)/);
+		if (match) {
+			if (match[2] == ' ') {
+				editor().edit((edit) => {
+					edit.replace(line.range, match[1] + '[x]' + match[3] + match[4]);
+				})
+			}
+			else if (match[2] == 'x') {
+				editor().edit((edit) => {
+					edit.replace(line.range, match[1] + '[ ]' + match[3] + match[4]);
+				})
+			}
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.check', check));
 

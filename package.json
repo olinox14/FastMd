@@ -169,7 +169,7 @@
 			},
 			{
 				"command": "fastmd.toggleChecklist",
-				"key": "ctrl++",
+				"key": "alt+x",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
