@@ -278,6 +278,10 @@ function activate(context) {
 			if (typeof(word) != 'undefined') {
 				return word;
 			}
+			word = editor().document.getWordRangeAtPosition(position(), new RegExp('^' + srx_url + '$'));
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
 			return editor().document.getWordRangeAtPosition(position(), /\S+/);
 		}
 
@@ -348,6 +352,7 @@ function activate(context) {
 
 		if (autoPasteLinks) {
 			vscode.env.clipboard.readText().then((content)=>{
+				content = content.trim();
 				if (content.match(new RegExp('^' + srx_url + '$'))) {
 					editor().edit((edit) => {
 						return edit.insert(position(), content);
