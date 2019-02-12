@@ -13,6 +13,7 @@ function activate(context) {
 	const italicSymbol = '*';
 	const cleverUnlink = true;  // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
 	const autoPasteLinks = true; // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
+	const autoRef = true; // Move the url at the bottom of the document when numeric link reference formatting is applied
 
 	// return the current text editor
 	function editor() { return vscode.window.activeTextEditor }
@@ -118,25 +119,25 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH1', setH1));
 	
-	// ctrl+h 2
+	// ctrl+shift+2
 	function setH2() {
 		setHeader(2);
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH2', setH2));
 	
-	// ctrl+h 3
+	// ctrl+shift+3
 	function setH3() {
 		setHeader(3);
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH3', setH3));
 	
-	// ctrl+h 4
+	// ctrl+shift+4
 	function setH4() {
 		setHeader(4);
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH4', setH4));
 	
-	// ctrl+h 5
+	// ctrl+shift+5
 	function setH5() {
 		setHeader(5);
 	}
@@ -263,8 +264,8 @@ function activate(context) {
 		// C. [](url) => <url>%
 		// D. <url> => url%
 		// E. url => [%](url)
-		// F1. abc => [abc](%)     // if none url in the clipboard
-		// F2. abc => [abc](url)%  // if an url was found in the clipboard
+		// F1. abc => [abc](%)     // if none url in the clipboard; abc can be an empty string
+		// F2. abc => [abc](url)%  // if an url was found in the clipboard; abc can be an empty string
 
 		function getWordRange() {
 			if (!selection().isEmpty) {
@@ -278,11 +279,19 @@ function activate(context) {
 			if (typeof(word) != 'undefined') {
 				return word;
 			}
+			word = editor().document.getWordRangeAtPosition(position(), /\[(.*)\]\[(.*)\]/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
 			word = editor().document.getWordRangeAtPosition(position(), new RegExp('^' + srx_url + '$'));
 			if (typeof(word) != 'undefined') {
 				return word;
 			}
-			return editor().document.getWordRangeAtPosition(position(), /\S+/);
+			word = editor().document.getWordRangeAtPosition(position(), /\S*/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			return selection();
 		}
 
 		var word = getWordRange()
@@ -291,7 +300,6 @@ function activate(context) {
 
 		match = wordText.match(/^\[(.+)\]\((.+)\)$/);
 		if (match) {
-			// there is a title and an url: do nothing
 			if (cleverUnlink) {
 				vscode.env.clipboard.writeText(match[2]).then();
 				editor().edit((edit) => {
@@ -321,6 +329,12 @@ function activate(context) {
 				return edit.replace(word, '<' + match[1] + '>');
 			} )
 			setPosition(position().line, word.end.character)
+			return
+		}
+
+		match = wordText.match(/^\[(.*)\]\[(.+)\]$/);
+		if (match) {
+			// [abc][ref] pattern: ignore
 			return
 		}
 
@@ -366,11 +380,229 @@ function activate(context) {
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleLink', toggleLink));
 	
 	// ctrl+num
-	function toggleNumRefLink() {
-		vscode.window.showInformationMessage('ref-link');
+	function toggleNumRefLink(num) {
+		// # Patterns and behaviours :
+		// > (% is the expected position of the cursor after the operation)
+		// -----------------------------
+		// A. [abc](url) => [abc][n]   (...)   [n]: url
+		// B. [abc]() => [abc][n]
+		// C. abc => [abc][n]
+		// D. url => [][n] (...)  [n]: url
+		// E1. [abc][n] => [abc](url) // if url is found at the bottom of the document under pattern '[n]: url'
+		// E2. [abc][n] => [abc]() // if none url was found
+		// > If the reference is automatically created (cases A and D): notify
+		// > If the reference already exists: interrupt and notify
+
+		function getWordRange() {
+			if (!selection().isEmpty) {
+				return selection();
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /\[(.*)\]\((.*)\)/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /<(.+)>/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			word = editor().document.getWordRangeAtPosition(position(), /\[(.*)\]\[(.*)\]/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			word = editor().document.getWordRangeAtPosition(position(), new RegExp('^' + srx_url + '$'));
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			return editor().document.getWordRangeAtPosition(position(), /\S+/);
+		}
+
+		function retrieveUrl() {
+			// attempt to retrieve a referenced url at the bottom of the document for the current number
+			// return an empty string if none were found
+			var rx;
+			var linetext;
+			var urlmatch;
+			for (var i = 1; i <= 9; i++) {
+				rx = new RegExp('\\[' + num + '\\]:\\s?(.+)');
+				linetext = editor().document.lineAt(editor().document.lineCount - i).text;
+				urlmatch = linetext.match(rx);
+				if (urlmatch) {
+					return urlmatch[1];
+				}
+			}
+			return '';
+		}
+
+		var word = getWordRange();
+		var wordText = editor().document.getText(word);
+		var match;
+		var url;
+		
+		match = wordText.match(/^\[(.+)\]\((.+)\)$/);
+		if (match) {
+			if (autoRef) {
+				url = retrieveUrl();
+				if (url.length > 0) {
+					if (url == match[2]) {
+						editor().edit((edit) => {
+							return edit.replace(word, '[' + match[1] + '][' + num + ']');
+						} )
+						setPosition(word.start.line, word.start.character + 1)
+						return
+					}
+					else {
+						vscode.window.showErrorMessage('Another url is already referenced at [' + num + ']');
+						return;
+					}
+				}
+				editor().edit((edit) => {
+					edit.replace(word, '[' + match[1] + '][' + num + ']');
+					return edit.insert(new vscode.Position(editor().document.lineCount, 0), '\n[' + num + ']: ' + match[2]);
+				} )
+				setPosition(word.end.line, word.end.character - match[2].length)
+				return
+			} else {
+				return;
+			}
+		}
+
+		match = wordText.match(/^\[(.*)\]\(\)$/);
+		if (match) {
+			// [title]() pattern
+			if (autoRef) {
+				url = retrieveUrl();
+				if (url.length > 0) {
+					editor().edit((edit) => {
+						return edit.replace(word, '[' + match[1] + '][' + num + ']');
+					} )
+					setPosition(word.start.line, word.start.character + 1)
+					return
+				}
+				var end_pos = new vscode.Position(editor().document.lineCount, 0)
+				editor().edit((edit) => {
+					edit.replace(word, '[' + match[1] + '][' + num + ']');
+					return edit.insert(end_pos, '\n[' + num + ']: ');
+				} )
+				setPosition(end_pos.line + 1, 5)
+				return
+			}
+			else {
+				editor().edit((edit) => {
+					return edit.replace(word, '[' + match[1] + '][' + num + ']');
+				} )
+				setPosition(position().line, word.end.character - 1)
+				return
+			}
+		}
+
+		match = wordText.match(/^\[\]\((.+)\)$/);
+		if (match) {
+			// [](url) pattern
+			if (autoRef) {
+				url = retrieveUrl();
+				if (url.length > 0) {
+					if (url == match[1]) {
+						editor().edit((edit) => {
+							return edit.replace(word, '[][' + num + ']');
+						} )
+						setPosition(word.start.line, word.start.character + 1)
+						return
+					}
+					else {
+						vscode.window.showErrorMessage('A different url is already referenced at [' + num + ']');
+						return;
+					}
+				}
+			
+				var end_pos = new vscode.Position(editor().document.lineCount, 0)
+				editor().edit((edit) => {
+					edit.replace(word, '[][' + num + ']');
+					return edit.insert(end_pos, '\n[' + num + ']: ' + match[1]);
+				} )
+				setPosition(word.start.line, word.start.character + 1)
+				return
+			}
+			else {
+				return
+			}
+		}
+
+		match = wordText.match(/^\[(.*)\]\[\d\]$/);
+		if (match) {
+			// [][ref] pattern, where ref is a one-digit number
+			if (autoRef) {
+				url = retrieveUrl();
+				editor().edit((edit) => {
+					return edit.replace(word, '[' + match[1] + '](' + url + ')');
+				} )
+				setPosition(word.end.line, word.end.character + url.length)
+				return
+			}
+			else {
+				editor().edit((edit) => {
+					return edit.replace(word, '[' + match[1] + ']()');
+				} )
+				return
+			}
+		}
+
+		match = wordText.match(/^\[\]\[(.+)\]$/);
+		if (match) {
+			// [][ref] pattern, where ref is not a one-digit number
+			return
+		}
+
+		match = wordText.match(new RegExp('^<(' + srx_url + ')>$'));
+		if (match) {
+			// <url> pattern
+			return
+		}
+
+		match = wordText.match(new RegExp('^' + srx_url + '$'))
+		if (match) {
+			// unformatted url
+			return
+		}
+
+		// non-url formatted word: apply the [title][num] format, with word as title
+		editor().edit((edit) => {
+			return edit.replace(word, '['+wordText+'][' + num + ']');
+		} )
+		setPosition(position().line, word.end.character + 3);
+
+		if (autoPasteLinks) {
+		}
+
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink', toggleNumRefLink));
 	
+	// ctrl+1
+	function toggleNumRefLink1() { toggleNumRefLink(1); }
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink1', toggleNumRefLink1));
+	// ctrl+2
+	function toggleNumRefLink2() { toggleNumRefLink(2); }
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink2', toggleNumRefLink2));
+	// ctrl+3
+	function toggleNumRefLink3() { toggleNumRefLink(3); }
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink3', toggleNumRefLink3));
+	// ctrl+4
+	function toggleNumRefLink4() { toggleNumRefLink(4); }
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink4', toggleNumRefLink4));
+	// ctrl+5
+	function toggleNumRefLink5() { toggleNumRefLink(5); }
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink5', toggleNumRefLink5));
+	// ctrl+6
+	function toggleNumRefLink6() { toggleNumRefLink(6); }
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink6', toggleNumRefLink6));
+	// ctrl+7
+	function toggleNumRefLink7() { toggleNumRefLink(7); }
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink7', toggleNumRefLink7));
+	// ctrl+8
+	function toggleNumRefLink8() { toggleNumRefLink(8); }
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink8', toggleNumRefLink8));
+	// ctrl+9
+	function toggleNumRefLink9() { toggleNumRefLink(9); }
+	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink9', toggleNumRefLink9));
+
 	// ctrl+g
 	function toggleImageLink() {
 		vscode.window.showInformationMessage('img-link');
