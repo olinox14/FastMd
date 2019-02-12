@@ -14,6 +14,7 @@ function activate(context) {
 	const cleverUnlink = true;  // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
 	const autoPasteLinks = true; // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
 	const autoRef = true; // Move the url at the bottom of the document when numeric link reference formatting is applied
+	const tabCodeBlock = true;  // block of code are formatted with tab pattern (instead of ```code```)
 
 	// return the current text editor
 	function editor() { return vscode.window.activeTextEditor }
@@ -753,7 +754,74 @@ function activate(context) {
 	
 	// ctrl+k
 	function toggleCodeblock() {
-		vscode.window.showInformationMessage('codeblock');
+		var sel = selection();
+		if (!sel.isEmpty) {
+			var selected_text = editor().document.getText(sel)
+			var match;
+
+			match = selected_text.trim().match(/^`(.*)`$/);
+			if (match) {
+				editor().edit((edit) => {
+					edit.replace(sel, match[1]);
+				})
+				return
+			}
+
+			match = selected_text.trim().match(/^```(.*)```$/m);
+			if (match) {
+				editor().edit((edit) => {
+					edit.replace(sel, match[1]);
+				})
+				return
+			}
+
+			match = selected_text.match(/^((?: {4,}|\t)(.*))+$/m);
+			if (match) {
+				editor().edit((edit) => {
+					edit.replace(sel, selected_text.trim().replace('\n    ', '\n').replace('\n\t', '\n'));
+				})
+				return
+			}
+
+			var selected_text = selected_text.trim()
+
+			if (sel.isSingleLine) {
+
+				var line = editor().document.lineAt(sel.start.line);
+
+				if (sel.isEqual(line.range) || sel.isEqual(line.rangeIncludingLineBreak)) {
+					// same line, whole line
+					editor().edit((edit) => {
+						edit.replace(sel, '\n    ' + selected_text + '\n\n');
+					})
+				} else {
+					// same line, part of the line
+					editor().edit((edit) => {
+						edit.replace(sel, '`' + selected_text + '`');
+					})
+				}
+			} else {
+				editor().edit((edit) => {
+					edit.replace(sel, '\n    ' + selected_text.replace('\n', '\n    ') + '\n\n');
+				})
+			}
+		}
+		else {
+			var word = editor().document.getWordRangeAtPosition(position(), /^`(.*)`$/);
+			if (typeof(word) != 'undefined') {
+				var wordText = editor().document.getText(word)
+				match = wordText.match(/^`(.*)`$/);
+				editor().edit((edit) => {
+					return edit.replace(word, match[1]);
+				} )
+			}
+			else {
+				editor().edit((edit) => {
+					return edit.insert(position(), '``');
+				} )
+				setPosition(position().line, position().character + 1)
+			}
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleCodeblock', toggleCodeblock));
 	
