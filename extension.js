@@ -1,74 +1,68 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+"use strict";
+/*
+    FullMD is under GNU Licence
+    @olinox14, feb. 2019
+*/
+
 const vscode = require('vscode');
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
- 
+
 /**
+ * Called on FullMD activation
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
 
-	const italicSymbol = '*';  // has to be one-character only
-	const uListSymbol = '*'; // has to be one-character only
-	const cleverUnlink = true;  // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
-	const autoPasteLinks = true; // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
-	const autoRef = true; // Move the url at the bottom of the document when numeric link reference formatting is applied
-	const tabCodeBlock = true;  // block of code are formatted with tab pattern (instead of ```code```)
-	const csvSeparators = ';\t|';
+	// *** Conf
 
-	// return the current text editor
+	const italicSymbol = '*';     // has to be one-character only
+	const uListSymbol = '*';     // has to be one-character only
+	const cleverUnlink = true;    // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
+	const autoPasteLinks = true;    // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
+	const autoRef = true;         // Move the url at the bottom of the document when numeric link reference formatting is applied
+	const tabCodeBlock = true;     // block of code are formatted with tab pattern (instead of ```code```)
+	const csvSeparators = ';\t|';  // symbols recognized as csv separators when inserting a table
+
+
+	// *** Shorthands
+
+	/** return the current text editor */
 	function editor() { return vscode.window.activeTextEditor }
-	// return the current selection
+	
+	/** return the current selection */
 	function selection() { return editor().selection }
-	// return the current selected text
-	function selectedText() { return editor().document.getText(selection()) }
-	// return the current position of the cursor
+
+	/** return the current position */
 	function position() { return selection().active }
 	// set a new position for the cursor
+	
+	/** set a new position */
 	function setPosition(l, c) {
 		var newPosition = position().with(l, c);
         var newSelection = new vscode.Selection(newPosition, newPosition);
 		editor().selection = newSelection;
 		return newPosition;
 	}
-	// move the current position for the cursor
-	function movePosition(dl, dc) {
-		var pos = position();
-		return setPosition(Math.max(pos.line+dl, 0), Math.max(pos.character+dc, 0));
-	}
 
-	function extendedSelection(pattern) {
-		var range = editor().document.getWordRangeAtPosition(selection().active, pattern);
-		return range == null ? null : new vscode.Selection(range.start, range.end);
-	}
 
-	function extendSelection(pattern) {
-		var newSel = extendedSelection(pattern);
-		if (newSel) {
-			editor().selection = newSel; 
-		}
-	}
+	// *** Utils
 
-	function extendSelectionIfNone(pattern) {
-		if (selection().isEmpty) {
-			return extendSelection(pattern);
-		}
-		return selection();
-	}
-
-	// return the text with special characters regex escaped 
+	/** return the text escaped for use in a regex */
 	function reEscape(text) {
 		return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 	}
 
-	// return the text with special characters markdown escaped
+	/** return the text escaped for use in markdown */
 	function mdEscape(text) {
 		return text.replace(/[-[\]{}()*+.\\#`_!]/g, '\\$&');
 	}
 
-	// ctrl+enter
+
+	// *** Commands
+
+	/** [ctrl+enter]
+	 *  Add double-space before the newline character to insert a markdown newline
+	 */
 	function addLinebreak() {
 		editor().edit((edit) => {
 			edit.insert(selection().end, '  \n');
@@ -76,14 +70,17 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.addLinebreak', addLinebreak));
 
-	// ctrl+/
-	// auto-escape on formatted text?
+	/** [ctrl+/]
+	 *  Escape each special character in the selection
+	 */
 	function escape() {
-		return editor().edit(edit => edit.replace(selection(), (() => mdEscape(selectedText()))()));
+		return editor().edit(edit => edit.replace(selection(), (() => mdEscape(editor().document.getText(selection())))()));
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.escape', escape));
 
-	// ctrl+h
+	/** [ctrl+h]
+	 *  Increase the header level of one
+	 */
 	function headerUp() {
 		var line = editor().document.lineAt(position().line);
 		if (!line.text.startsWith('#####')){
@@ -94,7 +91,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.headerUp', headerUp));
 
-	// ctrl+shift+h
+	/** [ctrl+shift+h]
+	 *  Decrease the header level of one
+	 */
 	function headerDown() {
 		var line = editor().document.lineAt(position().line);
 		if (line.text.startsWith('#')){
@@ -106,6 +105,7 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.headerDown', headerDown));
 	
+	/** Set the header's level to 'level' */
 	function setHeader(level) {
 		var line = editor().document.lineAt(position().line);
 		editor().edit((edit) => {
@@ -116,23 +116,29 @@ function activate(context) {
 		});
 	}
 
-	// ctrl+shift+1
+	/** [ctrl+shift+1] Set the header's level to 1 */
 	function setH1() { setHeader(1); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH1', setH1));
-	// ctrl+shift+2
+
+	/** [ctrl+shift+2] Set the header's level to 2 */
 	function setH2() { setHeader(2); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH2', setH2));
-	// ctrl+shift+3
+
+	/** [ctrl+shift+3] Set the header's level to 3 */
 	function setH3() { setHeader(3); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH3', setH3));
-	// ctrl+shift+4
+
+	/** [ctrl+shift+4] Set the header's level to 4 */
 	function setH4() { setHeader(4); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH4', setH4));
-	// ctrl+shift+5
+
+	/** [ctrl+shift+5] Set the header's level to 5 */
 	function setH5() { setHeader(5); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH5', setH5));
 	
-	// ctrl+i
+	/** [ctrl+i]
+	 *  Toggle the italic formatting
+	 */
 	function toggleItalic() {
 		var srx = reEscape(italicSymbol) + '(\S*)' + reEscape(italicSymbol);
 
@@ -171,7 +177,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleItalic', toggleItalic));
 	
-	// ctrl+b
+	/** [ctrl+b]
+	 *  Toggle the bold formatting
+	 */
 	function toggleBold() {
 		function getWordRange() {
 			if (!selection().isEmpty) {
@@ -207,7 +215,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleBold', toggleBold));
 	
-	// ctrl+alt+s
+	/** [ctrl+alt+s]
+	 *  Toggle the striketrough formatting
+	 */
 	function toggleStrikethrough() {
 		function getWordRange() {
 			if (!selection().isEmpty) {
@@ -243,7 +253,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleStrikethrough', toggleStrikethrough));
 	
-	// ctrl+l
+	/** [ctrl+alt+s]
+	 *  Toggle the link formatting
+	 */
 	const srx_url = "((([A-Za-z]{3,9}:(?:\\/\\/)?)(?:[\\-;:&=\\+\\$,\w]+@)?[A-Za-z0-9\\.\\-]+|(?:www\\.|[\\-;:&=\\+\\$,\w]+@)[A-Za-z0-9\\.\\-]+)((?:\\/[\\+~%\\/\\.\\w\\-_]*)?\\??(?:[\\-\\+=&;%@\\.\w_]*)#?(?:[\\.\\!\\/\\\\\\w]*))?)";
 	function toggleLink() {
 
@@ -370,7 +382,7 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleLink', toggleLink));
 	
-	// ctrl+num
+	/** Toggle the numeric-style link formatting to 'num' */
 	function toggleNumRefLink(num) {
 		// # Patterns and behaviours :
 		// > (% is the expected position of the cursor after the operation)
@@ -566,35 +578,45 @@ function activate(context) {
 
 	}
 	
-	// ctrl+1
+	/** [ctrl+1] Toggle the numeric-style link formatting with index 1 */
 	function toggleNumRefLink1() { toggleNumRefLink(1); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink1', toggleNumRefLink1));
-	// ctrl+2
+
+	/** [ctrl+2] Toggle the numeric-style link formatting with index 2 */
 	function toggleNumRefLink2() { toggleNumRefLink(2); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink2', toggleNumRefLink2));
-	// ctrl+3
+
+	/** [ctrl+3] Toggle the numeric-style link formatting with index 3 */
 	function toggleNumRefLink3() { toggleNumRefLink(3); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink3', toggleNumRefLink3));
-	// ctrl+4
+
+	/** [ctrl+4] Toggle the numeric-style link formatting with index 4 */
 	function toggleNumRefLink4() { toggleNumRefLink(4); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink4', toggleNumRefLink4));
-	// ctrl+5
+
+	/** [ctrl+5] Toggle the numeric-style link formatting with index 5 */
 	function toggleNumRefLink5() { toggleNumRefLink(5); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink5', toggleNumRefLink5));
-	// ctrl+6
+
+	/** [ctrl+6] Toggle the numeric-style link formatting with index 6 */
 	function toggleNumRefLink6() { toggleNumRefLink(6); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink6', toggleNumRefLink6));
-	// ctrl+7
+
+	/** [ctrl+7] Toggle the numeric-style link formatting with index 7 */
 	function toggleNumRefLink7() { toggleNumRefLink(7); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink7', toggleNumRefLink7));
-	// ctrl+8
+
+	/** [ctrl+8] Toggle the numeric-style link formatting with index 8 */
 	function toggleNumRefLink8() { toggleNumRefLink(8); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink8', toggleNumRefLink8));
-	// ctrl+9
+
+	/** [ctrl+9] Toggle the numeric-style link formatting with index 9 */
 	function toggleNumRefLink9() { toggleNumRefLink(9); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink9', toggleNumRefLink9));
 
-	// ctrl+g
+	/** [ctrl+g]
+	 *  Toggle the image-link formatting
+	 */
 	function toggleImageLink() {
 		// # Patterns and behaviours :
 		// > (% is the expected position of the cursor after the operation)
@@ -712,7 +734,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleImageLink', toggleImageLink));
 	
-	// ctrl+q
+	/** [ctrl+q]
+	 *  Toggle the blockquote formatting
+	 */
 	function toggleBlockquote() {
 		var line = editor().document.lineAt(position().line);
 		var rx = /(>\s?).*/
@@ -732,7 +756,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleBlockquote', toggleBlockquote));
 	
-	// ctrl+r
+	/** [ctrl+r]
+	 *  Insert an horizonthal rule at the next line
+	 */
 	function insertHRule() {
 		var line = editor().document.lineAt(position().line);
 		editor().edit((edit) => {
@@ -742,7 +768,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.insertHRule', insertHRule));
 	
-	// ctrl+k
+	/** [ctrl+k]
+	 *  Toggle the codeblock formatting
+	 */
 	function toggleCodeblock() {
 		var sel = selection();
 		if (!sel.isEmpty) {
@@ -828,7 +856,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleCodeblock', toggleCodeblock));
 	
-	/// ctrl+u
+	/** [ctrl+u]
+	 *  Toggle the unordered-list formatting
+	 */
 	function toggleUList() {
 		var sel = selection();
 		var selected_text = editor().document.getText(sel).trim();
@@ -846,7 +876,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleUList', toggleUList));
 	
-	// ctrl+o
+	/** [ctrl+o]
+	 *  Toggle the ordered-list formatting
+	 */
 	function toggleOList() {
 		var sel = selection();
 		var selected_text = editor().document.getText(sel).trim();
@@ -878,7 +910,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleOList', toggleOList));
 	
-	// ctrl++
+	/** [alt+c]
+	 *  Toggle the check-list formatting
+	 */
 	function toggleChecklist() {
 		var sel = selection();
 		var selected_text = editor().document.getText(sel).trim();
@@ -896,7 +930,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleChecklist', toggleChecklist));
 
-	// alt+c
+	/** [alt+c]
+	 *  Check or uncheck the current line of a check-list
+	 */
 	function check() {
 		var line = editor().document.lineAt(position().line);
 		var match = line.text.match(/^( +)\[([x ])\]( +)(.*)/);
@@ -915,7 +951,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.check', check));
 
-	// ctrl+t t
+	/** [ctrl+t t]
+	 *  Insert a table or format the current selection to a table
+	 */
 	function insertTable() {
 		var sel = selection()
 		if (!sel.isEmpty) {
@@ -967,7 +1005,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.insertTable', insertTable));
 	
-	// ctrl+t right
+	/** [ctrl+t right]
+	 *  Add a column to the current table
+	 */
 	function tableAddCol() {
 		var pos = position();
 		var line = editor().document.lineAt(pos.line);
@@ -1011,7 +1051,9 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.tableAddCol', tableAddCol));
 	
-	// ctrl+t bottom
+	/** [ctrl+t down]
+	 *  Append a row at the end of the current table
+	 */
 	function tableAddRow() {
 		var pos = position();
 		var line = editor().document.lineAt(pos.line);
@@ -1040,6 +1082,8 @@ function activate(context) {
 }
 exports.activate = activate;
 
+
+/** Called when FullMd is deactiated */
 function deactivate() {}
 
 module.exports = {
