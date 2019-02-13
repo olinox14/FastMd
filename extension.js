@@ -10,8 +10,8 @@ const vscode = require('vscode');
  */
 function activate(context) {
 
-	const italicSymbol = '*';
-	const uListSymbol = '*';
+	const italicSymbol = '*';  // has to be one-character only
+	const uListSymbol = '*'; // has to be one-character only
 	const cleverUnlink = true;  // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
 	const autoPasteLinks = true; // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
 	const autoRef = true; // Move the url at the bottom of the document when numeric link reference formatting is applied
@@ -117,43 +117,31 @@ function activate(context) {
 	}
 
 	// ctrl+shift+1
-	function setH1() {
-		setHeader(1);
-	}
+	function setH1() { setHeader(1); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH1', setH1));
-	
 	// ctrl+shift+2
-	function setH2() {
-		setHeader(2);
-	}
+	function setH2() { setHeader(2); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH2', setH2));
-	
 	// ctrl+shift+3
-	function setH3() {
-		setHeader(3);
-	}
+	function setH3() { setHeader(3); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH3', setH3));
-	
 	// ctrl+shift+4
-	function setH4() {
-		setHeader(4);
-	}
+	function setH4() { setHeader(4); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH4', setH4));
-	
 	// ctrl+shift+5
-	function setH5() {
-		setHeader(5);
-	}
+	function setH5() { setHeader(5); }
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH5', setH5));
 	
 	// ctrl+i
 	function toggleItalic() {
-		// permettre de choisir le symbole dans les params
+		var srx = reEscape(italicSymbol) + '(\S*)' + reEscape(italicSymbol);
+
 		function getWordRange() {
 			if (!selection().isEmpty) {
 				return selection();
 			}
-			word = editor().document.getWordRangeAtPosition(position(), /\*(\S*)\*/);
+			
+			word = editor().document.getWordRangeAtPosition(position(), new RegExp(srx));
 			if (typeof(word) != 'undefined') {
 				return word;
 			}
@@ -162,7 +150,7 @@ function activate(context) {
 
 		var word = getWordRange();
 		var wordText = editor().document.getText(word);
-		var match = wordText.match(/^\*(\S*)\*$/)
+		var match = wordText.match(new RegExp('^' + srx + '$'));
         if (match) {
 			editor().edit((edit) => {
 				return edit.replace(word, match[1]);
@@ -171,7 +159,7 @@ function activate(context) {
 		}
 		else {
 			editor().edit((edit) => {
-				return edit.replace(word, '*' + wordText + '*');
+				return edit.replace(word, italicSymbol + wordText + italicSymbol);
 			} )
 			if (position().line == word.end.line && position().character == word.end.character) {
 				setPosition(position().line, position().character + 2);
@@ -793,9 +781,16 @@ function activate(context) {
 
 				if (sel.isEqual(line.range) || sel.isEqual(line.rangeIncludingLineBreak)) {
 					// same line, whole line
-					editor().edit((edit) => {
-						edit.replace(sel, '\n    ' + selected_text + '\n\n');
-					})
+					if (tabCodeBlock) {
+						editor().edit((edit) => {
+							edit.replace(sel, '\n    ' + selected_text + '\n\n');
+						})
+					} else {
+						editor().edit((edit) => {
+							edit.replace(sel, '```' + selected_text + '```');
+						})
+					}
+
 				} else {
 					// same line, part of the line
 					editor().edit((edit) => {
@@ -803,9 +798,15 @@ function activate(context) {
 					})
 				}
 			} else {
-				editor().edit((edit) => {
-					edit.replace(sel, '\n    ' + selected_text.replace('\n', '\n    ') + '\n\n');
-				})
+				if (tabCodeBlock) {
+					editor().edit((edit) => {
+						edit.replace(sel, '\n    ' + selected_text.replace('\n', '\n    ') + '\n\n');
+					})
+				} else {
+					editor().edit((edit) => {
+						edit.replace(sel, '```' + selected_text + '```');
+					})
+				}
 			}
 		}
 		else {
@@ -856,11 +857,25 @@ function activate(context) {
 				edit.replace(sel, selected_text.replace(/^ ?\d\. ?/m, '').replace(/\n ?\d\. ?/m, '\n'));
 			})
 		} else {
+			var listArr = new Array(0);
+			var line;
+
+			// allow to skip a line at the start of the block if the previous line is not empty
+			var prefix = '';
+			if(sel.start.character > 0 || (sel.start.line > 0 && (!editor().document.lineAt(sel.start.line - 1).isEmptyOrWhitespace))) {
+				prefix = '\n';
+			}
+
+			for (var i=0;i<=(sel.end.line-sel.start.line);i++) {
+				line = editor().document.lineAt(sel.start.line+i);
+				listArr.push(' ' + (i + 1) + '. ' + line.text)
+			}
+
 			editor().edit((edit) => {
-				edit.replace(sel, '\n 1. ' + selected_text.replace('\n', '\n 1. ') + '\n\n');
+				edit.replace(sel, prefix + listArr.join('\n') + '\n');
 			})
 		}
-	}	
+	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleOList', toggleOList));
 	
 	// ctrl++
@@ -1021,12 +1036,6 @@ function activate(context) {
 		})
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.tableAddRow', tableAddRow));
-
-	// ctrl+alt+p
-	function togglePreview() {
-		vscode.window.showInformationMessage('preview');
-	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.togglePreview', togglePreview));
 	
 }
 exports.activate = activate;

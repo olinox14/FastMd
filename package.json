@@ -191,11 +191,6 @@
 				"command": "fastmd.tableAddRow",
 				"key": "ctrl+t down",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
-			},
-			{
-				"command": "fastmd.togglePreview",
-				"key": "ctrl+alt+0",
-				"when": "editorTextFocus && editorLangId == 'markdown'"
 			}
 		]
 	},
