@@ -16,6 +16,7 @@ function activate(context) {
 	const autoPasteLinks = true; // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
 	const autoRef = true; // Move the url at the bottom of the document when numeric link reference formatting is applied
 	const tabCodeBlock = true;  // block of code are formatted with tab pattern (instead of ```code```)
+	const csvSeparators = ';\t|';
 
 	// return the current text editor
 	function editor() { return vscode.window.activeTextEditor }
@@ -899,19 +900,65 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.check', check));
 
-	// ctrl+t
+	// ctrl+t t
 	function insertTable() {
-		vscode.window.showInformationMessage('table');
+		var sel = selection()
+		if (!sel.isEmpty) {
+			var selectedText = editor().document.getText(sel).trim();
+			if (sel.isSingleLine) {
+				var columns = selectedText.split(new RegExp('[' + csvSeparators + ']'));
+				columns =columns.concat(new Array(Math.max(0, (3 - columns.length))).fill('   '));
+
+				var rowmodel = new Array(columns.length);
+				editor().edit((edit) => {
+					edit.replace(sel, '|' + columns.join(' | ') + 
+									  '|\n|' + rowmodel.fill(' ------ ').join('|') + 
+									  '|\n|' + rowmodel.fill('   ').join('|') + 
+									  '|\n|' + rowmodel.fill('   ').join('|') + '|\n');
+				})
+			}
+			else {
+				var lines = new Array(0)
+				var lineArr;
+				var line = editor().document.lineAt(sel.start.line);
+
+				lineArr = line.text.split(new RegExp('[' + csvSeparators + ']'));
+				lineArr = lineArr.concat(new Array(Math.max(0, (3 - lineArr.length))).fill('   '));
+				lines.push(lineArr)
+
+				lineArr = new Array(lines[0].length).fill('------')
+				lines.push(lineArr)
+
+				for (var i=sel.start.line+1; i<=sel.end.line;i++) {
+					line = editor().document.lineAt(i);
+					lineArr = line.text.split(new RegExp('[' + csvSeparators + ']'));
+					lineArr = lineArr.concat(new Array(Math.max(0, (lines[0].length - lineArr.length))).fill('   '));
+					lines.push(lineArr);
+				}
+
+				editor().edit((edit) => {
+					edit.replace(sel, lines.map((row) => '| ' + row.join(' | ') + ' |').join('\n') + '\n');
+				})
+
+			}
+		}
+		else{
+			// no selection, an empty table is inserted
+			editor().edit((edit) => {
+				edit.replace(sel, '\n|   |   |\n| ----- | ----- |\n|   |   |\n|   |   |\n');
+			})
+			setPosition(sel.start.line + 1, sel.start.character + 2);
+		}
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.insertTable', insertTable));
 	
-	// ctrl+right
+	// ctrl+t right
 	function tableAddCol() {
 		vscode.window.showInformationMessage('add-col');
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.tableAddCol', tableAddCol));
 	
-	// ctrl+bottom
+	// ctrl+t bottom
 	function tableAddRow() {
 		vscode.window.showInformationMessage('add-row');
 	}
