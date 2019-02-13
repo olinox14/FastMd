@@ -1,7 +1,7 @@
 {
-	"name": "fastmd",
+	"name": "fullmd",
 	"publisher": "olinox14",
-	"displayName": "FastMd",
+	"displayName": "FullMd",
 	"description": "Fast Markdown formatting for Visual Studio Code",
 	"version": "0.0.1",
 	"engines": {

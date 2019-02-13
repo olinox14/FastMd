@@ -23,7 +23,6 @@ function activate(context) {
 	const tabCodeBlock = true;     // block of code are formatted with tab pattern (instead of ```code```)
 	const csvSeparators = ';\t|';  // symbols recognized as csv separators when inserting a table
 
-
 	// *** Shorthands
 
 	/** return the current text editor */
@@ -253,7 +252,7 @@ function activate(context) {
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleStrikethrough', toggleStrikethrough));
 	
-	/** [ctrl+alt+s]
+	/** [ctrl+l]
 	 *  Toggle the link formatting
 	 */
 	const srx_url = "((([A-Za-z]{3,9}:(?:\\/\\/)?)(?:[\\-;:&=\\+\\$,\w]+@)?[A-Za-z0-9\\.\\-]+|(?:www\\.|[\\-;:&=\\+\\$,\w]+@)[A-Za-z0-9\\.\\-]+)((?:\\/[\\+~%\\/\\.\\w\\-_]*)?\\??(?:[\\-\\+=&;%@\\.\w_]*)#?(?:[\\.\\!\\/\\\\\\w]*))?)";
@@ -906,11 +905,14 @@ function activate(context) {
 			editor().edit((edit) => {
 				edit.replace(sel, prefix + listArr.join('\n') + '\n');
 			})
+
 		}
+
+		
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleOList', toggleOList));
 	
-	/** [alt+c]
+	/** [alt+x]
 	 *  Toggle the check-list formatting
 	 */
 	function toggleChecklist() {
