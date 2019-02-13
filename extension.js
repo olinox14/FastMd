@@ -954,13 +954,71 @@ function activate(context) {
 	
 	// ctrl+t right
 	function tableAddCol() {
-		vscode.window.showInformationMessage('add-col');
+		var pos = position();
+		var line = editor().document.lineAt(pos.line);
+		var rx = /\|(.*\|)+/;
+		if (!line.text.match(rx)) {
+			return
+		}
+		var startLine = pos.line;
+		var endLine = pos.line;
+
+		for (var i=pos.line - 1;i>=0;i--) {
+			var line = editor().document.lineAt(i);
+			if (!line.text.match(rx)) {
+				break;
+			}
+			startLine = i;
+		}
+
+		for (var i=pos.line + 1;i<=editor().document.lineCount - 1;i++) {
+			var line = editor().document.lineAt(i);
+			if (!line.text.match(rx)) {
+				break;
+			}
+			endLine = i;
+		}
+
+		if ((endLine - startLine) < 3) {
+			return
+		}
+
+		var headerText = editor().document.getText(new vscode.Range(new vscode.Position(startLine, 0), new vscode.Position(startLine + 1, 0)));
+		headerText = headerText.replace(/(\r?\n)/g, '   |$&');
+		var sepsText = editor().document.getText(new vscode.Range(new vscode.Position(startLine + 1, 0), new vscode.Position(startLine + 2, 0)));
+		sepsText = sepsText.replace(/(\r?\n)/g, ' ------ |$&');
+		var contentText = editor().document.getText(new vscode.Range(new vscode.Position(startLine + 2, 0), new vscode.Position(endLine + 1, 0)));
+		contentText = contentText.replace(/(\r?\n)/g, '   |$&');
+
+		editor().edit((edit) => {
+			edit.replace(new vscode.Range(new vscode.Position(startLine, 0), new vscode.Position(endLine + 1, 0)), headerText + sepsText + contentText);
+		})
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.tableAddCol', tableAddCol));
 	
 	// ctrl+t bottom
 	function tableAddRow() {
-		vscode.window.showInformationMessage('add-row');
+		var pos = position();
+		var line = editor().document.lineAt(pos.line);
+		var rx = /\|(.*\|)+/;
+		if (!line.text.match(rx)) {
+			return
+		}
+		var endLine = pos.line;
+		for (var i=pos.line + 1;i<=editor().document.lineCount - 1;i++) {
+			line = editor().document.lineAt(i);
+			if (!line.text.match(rx)) {
+				break;
+			}
+			endLine = i;
+		}
+
+		line = editor().document.lineAt(endLine);
+		var nbCols = line.text.split('|').length - 1
+
+		editor().edit((edit) => {
+			edit.insert(new vscode.Position(endLine + 1, 0), '|' + new Array(nbCols).join('   |') + '\n');
+		})
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fastmd.tableAddRow', tableAddRow));
 
