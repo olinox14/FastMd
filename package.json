@@ -15,180 +15,340 @@
 		"formatting"
 	],
 	"activationEvents": [
-		"*"
+		"onLanguage:markdown"
 	],
-	"main": "./extension.js",
+	"main": "./fullmd.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "fastmd.toggleItalic",
-				"title": "Toggle Italic",
-				"category": "Markdown Shortcuts"
+				"command": "fullmd.addLinebreak",
+				"title": "FullMd: Add Line Break",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.escape",
+				"title": "FullMd: Escape",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.headerUp",
+				"title": "FullMd: Header Increment",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.headerDown",
+				"title": "FullMd: Header Decrement",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.setH1",
+				"title": "FullMd: Header Level 1",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.setH2",
+				"title": "FullMd: Header Level 2",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.setH3",
+				"title": "FullMd: Header Level 3",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.setH4",
+				"title": "FullMd: Header Level 4",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.setH5",
+				"title": "FullMd: Header Level 5",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleItalic",
+				"title": "FullMd: Toggle Italic",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleBold",
+				"title": "FullMd: Toggle Bold",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleStrikethrough",
+				"title": "FullMd: Toggle Strikethrough",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleLink",
+				"title": "FullMd: Toggle Link",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleNumRefLink1",
+				"title": "FullMd: Toggle Numeric Ref 1",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleNumRefLink2",
+				"title": "FullMd: Toggle Numeric Ref 2",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleNumRefLink3",
+				"title": "FullMd: Toggle Numeric Ref 3",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleNumRefLink4",
+				"title": "FullMd: Toggle Numeric Ref 4",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleNumRefLink5",
+				"title": "FullMd: Toggle Numeric Ref 5",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleNumRefLink6",
+				"title": "FullMd: Toggle Numeric Ref 6",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleNumRefLink7",
+				"title": "FullMd: Toggle Numeric Ref 7",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleNumRefLink8",
+				"title": "FullMd: Toggle Numeric Ref 8",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleNumRefLink9",
+				"title": "FullMd: Toggle Numeric Ref 9",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleImageLink",
+				"title": "FullMd: Toggle Image Link",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleBlockquote",
+				"title": "FullMd: Toggle Blockquote",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.insertHRule",
+				"title": "FullMd: Insert Horizontal Rule",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleCodeblock",
+				"title": "FullMd: Toggle Codeblock",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleUList",
+				"title": "FullMd: Toggle Unordered List",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleOList",
+				"title": "FullMd: Toggle Ordered List",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.toggleChecklist",
+				"title": "FullMd: Toggle Checklist",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.check",
+				"title": "FullMd: Check",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.insertTable",
+				"title": "FullMd: Insert Table",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.tableAddCol",
+				"title": "FullMd: Add Column",
+				"category": "FullMd"
+			},
+			{
+				"command": "fullmd.tableAddRow",
+				"title": "FullMd: Add Row",
+				"category": "FullMd"
 			}
 		],
 		"keybindings": [
 			{
-				"command": "fastmd.addLinebreak",
+				"command": "fullmd.addLinebreak",
 				"key": "ctrl+enter",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.escape",
+				"command": "fullmd.escape",
 				"key": "ctrl+/",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.headerUp",
+				"command": "fullmd.headerUp",
 				"key": "ctrl+h",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.headerDown",
+				"command": "fullmd.headerDown",
 				"key": "ctrl+shift+h",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.setH1",
+				"command": "fullmd.setH1",
 				"key": "ctrl+shift+1",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.setH2",
+				"command": "fullmd.setH2",
 				"key": "ctrl+shift+2",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.setH3",
+				"command": "fullmd.setH3",
 				"key": "ctrl+shift+3",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.setH4",
+				"command": "fullmd.setH4",
 				"key": "ctrl+shift+4",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.setH5",
+				"command": "fullmd.setH5",
 				"key": "ctrl+shift+5",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleItalic",
+				"command": "fullmd.toggleItalic",
 				"key": "ctrl+i",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleBold",
+				"command": "fullmd.toggleBold",
 				"key": "ctrl+b",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleStrikethrough",
+				"command": "fullmd.toggleStrikethrough",
 				"key": "ctrl+alt+s",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleLink",
+				"command": "fullmd.toggleLink",
 				"key": "ctrl+l",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleNumRefLink1",
+				"command": "fullmd.toggleNumRefLink1",
 				"key": "ctrl+1",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleNumRefLink2",
+				"command": "fullmd.toggleNumRefLink2",
 				"key": "ctrl+2",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleNumRefLink3",
+				"command": "fullmd.toggleNumRefLink3",
 				"key": "ctrl+3",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleNumRefLink4",
+				"command": "fullmd.toggleNumRefLink4",
 				"key": "ctrl+4",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleNumRefLink5",
+				"command": "fullmd.toggleNumRefLink5",
 				"key": "ctrl+5",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleNumRefLink6",
+				"command": "fullmd.toggleNumRefLink6",
 				"key": "ctrl+6",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleNumRefLink7",
+				"command": "fullmd.toggleNumRefLink7",
 				"key": "ctrl+7",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleNumRefLink8",
+				"command": "fullmd.toggleNumRefLink8",
 				"key": "ctrl+8",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleNumRefLink9",
+				"command": "fullmd.toggleNumRefLink9",
 				"key": "ctrl+9",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleImageLink",
+				"command": "fullmd.toggleImageLink",
 				"key": "ctrl+g",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleBlockquote",
+				"command": "fullmd.toggleBlockquote",
 				"key": "ctrl+q",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.insertHRule",
+				"command": "fullmd.insertHRule",
 				"key": "ctrl+r",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleCodeblock",
+				"command": "fullmd.toggleCodeblock",
 				"key": "ctrl+k",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleUList",
+				"command": "fullmd.toggleUList",
 				"key": "ctrl+u",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleOList",
+				"command": "fullmd.toggleOList",
 				"key": "ctrl+o",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.toggleChecklist",
+				"command": "fullmd.toggleChecklist",
 				"key": "alt+x",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.check",
+				"command": "fullmd.check",
 				"key": "alt+c",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.insertTable",
+				"command": "fullmd.insertTable",
 				"key": "ctrl+t t",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.tableAddCol",
+				"command": "fullmd.tableAddCol",
 				"key": "ctrl+t right",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
-				"command": "fastmd.tableAddRow",
+				"command": "fullmd.tableAddRow",
 				"key": "ctrl+t down",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			}

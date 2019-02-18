@@ -6,6 +6,17 @@
 
 const vscode = require('vscode');
 
+// *** Utils
+
+/** return the text escaped for use in a regex */
+function reEscape(text) {
+	return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
+
+/** return the text escaped for use in markdown */
+function mdEscape(text) {
+	return text.replace(/[-[\]{}()*+.\\#`_!]/g, '\\$&');
+}
 
 /**
  * Called on FullMD activation
@@ -43,31 +54,17 @@ function activate(context) {
 		return newPosition;
 	}
 
-
-	// *** Utils
-
-	/** return the text escaped for use in a regex */
-	function reEscape(text) {
-		return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-	}
-
-	/** return the text escaped for use in markdown */
-	function mdEscape(text) {
-		return text.replace(/[-[\]{}()*+.\\#`_!]/g, '\\$&');
-	}
-
-
 	// *** Commands
 
 	/** [ctrl+enter]
 	 *  Add double-space before the newline character to insert a markdown newline
 	 */
 	function addLinebreak() {
-		editor().edit((edit) => {
+		return editor().edit((edit) => {
 			edit.insert(selection().end, '  \n');
 		} )
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.addLinebreak', addLinebreak));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.addLinebreak', addLinebreak));
 
 	/** [ctrl+/]
 	 *  Escape each special character in the selection
@@ -75,7 +72,7 @@ function activate(context) {
 	function escape() {
 		return editor().edit(edit => edit.replace(selection(), (() => mdEscape(editor().document.getText(selection())))()));
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.escape', escape));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.escape', escape));
 
 	/** [ctrl+h]
 	 *  Increase the header level of one
@@ -83,12 +80,12 @@ function activate(context) {
 	function headerUp() {
 		var line = editor().document.lineAt(position().line);
 		if (!line.text.startsWith('#####')){
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				return edit.insert(new vscode.Position(position().line, 0), (line.text.startsWith('#') ? '#' : '# '));
 			} )
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.headerUp', headerUp));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.headerUp', headerUp));
 
 	/** [ctrl+shift+h]
 	 *  Decrease the header level of one
@@ -96,18 +93,18 @@ function activate(context) {
 	function headerDown() {
 		var line = editor().document.lineAt(position().line);
 		if (line.text.startsWith('#')){
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				return edit.delete(new vscode.Range(new vscode.Position(position().line, 0), 
 								                    new vscode.Position(position().line, (line.text.startsWith('# ') ? 2 : 1))));
 			} )
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.headerDown', headerDown));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.headerDown', headerDown));
 	
 	/** Set the header's level to 'level' */
 	function setHeader(level) {
 		var line = editor().document.lineAt(position().line);
-		editor().edit((edit) => {
+		return editor().edit((edit) => {
 			return edit.replace(new vscode.Range(new vscode.Position(position().line, 0), 
 												 new vscode.Position(position().line, 
 												                     line.text.search(/[^\s#]/))), 
@@ -116,30 +113,30 @@ function activate(context) {
 	}
 
 	/** [ctrl+shift+1] Set the header's level to 1 */
-	function setH1() { setHeader(1); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH1', setH1));
+	function setH1() { return setHeader(1); }
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.setH1', setH1));
 
 	/** [ctrl+shift+2] Set the header's level to 2 */
-	function setH2() { setHeader(2); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH2', setH2));
+	function setH2() { return setHeader(2); }
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.setH2', setH2));
 
 	/** [ctrl+shift+3] Set the header's level to 3 */
-	function setH3() { setHeader(3); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH3', setH3));
+	function setH3() { return setHeader(3); }
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.setH3', setH3));
 
 	/** [ctrl+shift+4] Set the header's level to 4 */
-	function setH4() { setHeader(4); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH4', setH4));
+	function setH4() { return setHeader(4); }
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.setH4', setH4));
 
 	/** [ctrl+shift+5] Set the header's level to 5 */
-	function setH5() { setHeader(5); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.setH5', setH5));
+	function setH5() { return setHeader(5); }
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.setH5', setH5));
 	
 	/** [ctrl+i]
 	 *  Toggle the italic formatting
 	 */
 	function toggleItalic() {
-		var srx = reEscape(italicSymbol) + '(\S*)' + reEscape(italicSymbol);
+		var srx = reEscape(italicSymbol) + '(\\S*)' + reEscape(italicSymbol);
 
 		function getWordRange() {
 			if (!selection().isEmpty) {
@@ -157,24 +154,21 @@ function activate(context) {
 		var wordText = editor().document.getText(word);
 		var match = wordText.match(new RegExp('^' + srx + '$'));
         if (match) {
-			editor().edit((edit) => {
-				return edit.replace(word, match[1]);
-			} )
-			setPosition(position().line, position().character - 1);
+			return editor().edit((edit) => {
+				edit.replace(word, match[1]);
+			} ).then((b) => {
+				setPosition(position().line, position().character);
+			})
 		}
 		else {
-			editor().edit((edit) => {
-				return edit.replace(word, italicSymbol + wordText + italicSymbol);
-			} )
-			if (position().line == word.end.line && position().character == word.end.character) {
-				setPosition(position().line, position().character + 2);
-			}
-			else {
-				setPosition(position().line, position().character + 1);
-			}
+			return editor().edit((edit) => {
+				edit.replace(word, italicSymbol + wordText + italicSymbol);
+			} ).then((b) => {
+				setPosition(position().line, position().character);
+			});
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleItalic', toggleItalic));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleItalic', toggleItalic));
 	
 	/** [ctrl+b]
 	 *  Toggle the bold formatting
@@ -195,24 +189,26 @@ function activate(context) {
 		var wordText = editor().document.getText(word);
 		var match = wordText.match(/^\*\*(\S*)\*\*$/)
         if (match) {
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				return edit.replace(word, match[1]);
-			} )
-			setPosition(position().line, position().character - 2);
+			} ).then((b) => {
+				setPosition(position().line, position().character - 2);
+			});
 		}
 		else {
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				return edit.replace(word, '**' + wordText + '**');
-			} )
-			if (position().line == word.end.line && position().character == word.end.character) {
-				setPosition(position().line, position().character + 4);
-			}
-			else {
-				setPosition(position().line, position().character + 2);
-			}
+			} ).then((b) => {
+				if (position().line == word.end.line && position().character == word.end.character) {
+					setPosition(position().line, position().character + 4);
+				}
+				else {
+					setPosition(position().line, position().character + 2);
+				}
+			});
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleBold', toggleBold));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleBold', toggleBold));
 	
 	/** [ctrl+alt+s]
 	 *  Toggle the striketrough formatting
@@ -233,24 +229,26 @@ function activate(context) {
 		var wordText = editor().document.getText(word);
 		var match = wordText.match(/^~~(\S*)~~$/)
         if (match) {
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				return edit.replace(word, match[1]);
-			} )
-			setPosition(position().line, position().character - 2);
+			} ).then((b) => {
+				setPosition(position().line, position().character - 2);
+			});
 		}
 		else {
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				return edit.replace(word, '~~' + wordText + '~~');
-			} )
-			if (position().line == word.end.line && position().character == word.end.character) {
-				setPosition(position().line, position().character + 4);
-			}
-			else {
-				setPosition(position().line, position().character + 2);
-			}
+			} ).then((b) => {
+				if (position().line == word.end.line && position().character == word.end.character) {
+					setPosition(position().line, position().character + 4);
+				}
+				else {
+					setPosition(position().line, position().character + 2);
+				}
+			});
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleStrikethrough', toggleStrikethrough));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleStrikethrough', toggleStrikethrough));
 	
 	/** [ctrl+l]
 	 *  Toggle the link formatting
@@ -304,11 +302,12 @@ function activate(context) {
 		if (match) {
 			if (cleverUnlink) {
 				vscode.env.clipboard.writeText(match[2]).then();
-				editor().edit((edit) => {
+
+				return editor().edit((edit) => {
 					return edit.replace(word, match[1]);
-				} )
-				setPosition(position().line, word.start.character + match[1].length + 1);
-				return
+				} ).then((b) => {
+					setPosition(position().line, word.start.character + match[1].length + 1);
+				});
 			} else {
 				return;
 			}
@@ -317,21 +316,21 @@ function activate(context) {
 		match = wordText.match(/^\[(.*)\]\(\)$/);
 		if (match) {
 			// [title]() pattern
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				return edit.replace(word, match[1]);
-			} )
-			setPosition(position().line, word.end.character - 1)
-			return
+			} ).then((b) => {
+				setPosition(position().line, word.end.character - 1);
+			});
 		}
 
 		match = wordText.match(/^\[\]\((.+)\)$/);
 		if (match) {
 			// [](url) pattern
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				return edit.replace(word, '<' + match[1] + '>');
-			} )
-			setPosition(position().line, word.end.character)
-			return
+			} ).then((b) => {
+				setPosition(position().line, word.end.character);
+			});
 		}
 
 		match = wordText.match(/^\[(.*)\]\[(.+)\]$/);
@@ -345,9 +344,9 @@ function activate(context) {
 			// url already <url> formatted, remove the <>
 			editor().edit((edit) => {
 				return edit.replace(word, match[1])
-			} )
-			setPosition(position().line, word.end.character)
-			return
+			} ).then((b) => {
+				setPosition(position().line, word.end.character);
+			});
 		}
 
 		match = wordText.match(new RegExp('^' + srx_url + '$'))
@@ -355,31 +354,32 @@ function activate(context) {
 			// unformatted url , apply the [](url) format
 			editor().edit((edit) => {
 				return edit.replace(word, '[]('+wordText+')');
-			} )
-			setPosition(position().line, word.start.character + 1)
-			return
+			} ).then((b) => {
+				setPosition(position().line, word.end.character + 1);
+			});
 		}
 
 		// non-url formatted word: apply the [title](url) format, with word as title
-		editor().edit((edit) => {
+		return editor().edit((edit) => {
 			return edit.replace(word, '['+wordText+']()');
-		} )
-		setPosition(position().line, word.end.character + 3);
+		} ).then((b) => {
+			setPosition(position().line, word.end.character + 3);
 
-		if (autoPasteLinks) {
-			vscode.env.clipboard.readText().then((content)=>{
-				content = content.trim();
-				if (content.match(new RegExp('^' + srx_url + '$'))) {
-					editor().edit((edit) => {
-						return edit.insert(position(), content);
-					} )
-					setPosition(position().line, word.end.character + content.length + 4);
-					vscode.env.clipboard.writeText('').then();
-				}
-			});
-		}
+			if (autoPasteLinks) {
+				vscode.env.clipboard.readText().then((content)=>{
+					content = content.trim();
+					if (content.match(new RegExp('^' + srx_url + '$'))) {
+						editor().edit((edit) => {
+							return edit.insert(position(), content);
+						} )
+						setPosition(position().line, word.end.character + content.length + 4);
+						vscode.env.clipboard.writeText('').then();
+					}
+				});
+			}
+		});
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleLink', toggleLink));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleLink', toggleLink));
 	
 	/** Toggle the numeric-style link formatting to 'num' */
 	function toggleNumRefLink(num) {
@@ -446,23 +446,22 @@ function activate(context) {
 				url = retrieveUrl();
 				if (url.length > 0) {
 					if (url == match[2]) {
-						editor().edit((edit) => {
+						return editor().edit((edit) => {
 							return edit.replace(word, '[' + match[1] + '][' + num + ']');
-						} )
-						setPosition(word.start.line, word.start.character + 1)
-						return
-					}
-					else {
+						} ).then((b) => {
+							setPosition(word.start.line, word.end.character + 1);
+						});
+					} else {
 						vscode.window.showErrorMessage('Another url is already referenced at [' + num + ']');
 						return;
 					}
 				}
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					edit.replace(word, '[' + match[1] + '][' + num + ']');
 					return edit.insert(new vscode.Position(editor().document.lineCount, 0), '\n[' + num + ']: ' + match[2]);
-				} )
-				setPosition(word.end.line, word.end.character - match[2].length)
-				return
+				} ).then((b) => {
+					setPosition(word.end.line, word.end.character - match[2].length)
+				});
 			} else {
 				return;
 			}
@@ -474,26 +473,26 @@ function activate(context) {
 			if (autoRef) {
 				url = retrieveUrl();
 				if (url.length > 0) {
-					editor().edit((edit) => {
+					return neditor().edit((edit) => {
 						return edit.replace(word, '[' + match[1] + '][' + num + ']');
-					} )
-					setPosition(word.start.line, word.start.character + 1)
-					return
+					} ).then((b) => {
+						setPosition(word.start.line, word.start.character + 1);
+					});
 				}
-				var end_pos = new vscode.Position(editor().document.lineCount, 0)
-				editor().edit((edit) => {
+				var end_pos = new vscode.Position(editor().document.lineCount, 0);
+				return editor().edit((edit) => {
 					edit.replace(word, '[' + match[1] + '][' + num + ']');
 					return edit.insert(end_pos, '\n[' + num + ']: ');
-				} )
-				setPosition(end_pos.line + 1, 5)
-				return
+				} ).then((b) => {
+					setPosition(end_pos.line + 1, 5);
+				});
 			}
 			else {
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					return edit.replace(word, '[' + match[1] + '][' + num + ']');
-				} )
-				setPosition(position().line, word.end.character - 1)
-				return
+				} ).then((b) => {
+					setPosition(position().line, word.end.character - 1);
+				});
 			}
 		}
 
@@ -504,11 +503,11 @@ function activate(context) {
 				url = retrieveUrl();
 				if (url.length > 0) {
 					if (url == match[1]) {
-						editor().edit((edit) => {
+						return editor().edit((edit) => {
 							return edit.replace(word, '[][' + num + ']');
-						} )
-						setPosition(word.start.line, word.start.character + 1)
-						return
+						} ).then((b) => {
+							setPosition(word.start.line, word.start.character + 1)
+						});
 					}
 					else {
 						vscode.window.showErrorMessage('A different url is already referenced at [' + num + ']');
@@ -517,12 +516,12 @@ function activate(context) {
 				}
 			
 				var end_pos = new vscode.Position(editor().document.lineCount, 0)
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					edit.replace(word, '[][' + num + ']');
 					return edit.insert(end_pos, '\n[' + num + ']: ' + match[1]);
-				} )
-				setPosition(word.start.line, word.start.character + 1)
-				return
+				} ).then((b) => {
+					setPosition(word.start.line, word.start.character + 1)
+				});
 			}
 			else {
 				return
@@ -536,15 +535,14 @@ function activate(context) {
 				url = retrieveUrl();
 				editor().edit((edit) => {
 					return edit.replace(word, '[' + match[1] + '](' + url + ')');
-				} )
-				setPosition(word.end.line, word.end.character + url.length)
-				return
+				} ).then((b) => {
+					setPosition(word.end.line, word.end.character + url.length)
+				});
 			}
 			else {
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					return edit.replace(word, '[' + match[1] + ']()');
 				} )
-				return
 			}
 		}
 
@@ -567,51 +565,52 @@ function activate(context) {
 		}
 
 		// non-url formatted word: apply the [title][num] format, with word as title
-		editor().edit((edit) => {
+		return editor().edit((edit) => {
 			return edit.replace(word, '['+wordText+'][' + num + ']');
-		} )
-		setPosition(position().line, word.end.character + 3);
+		} ).then((b) => {
+			setPosition(position().line, word.end.character + 3);
 
-		if (autoPasteLinks) {
-		}
+			if (autoPasteLinks) {
+			}
+		});
 
 	}
 	
 	/** [ctrl+1] Toggle the numeric-style link formatting with index 1 */
 	function toggleNumRefLink1() { toggleNumRefLink(1); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink1', toggleNumRefLink1));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleNumRefLink1', toggleNumRefLink1));
 
 	/** [ctrl+2] Toggle the numeric-style link formatting with index 2 */
 	function toggleNumRefLink2() { toggleNumRefLink(2); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink2', toggleNumRefLink2));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleNumRefLink2', toggleNumRefLink2));
 
 	/** [ctrl+3] Toggle the numeric-style link formatting with index 3 */
 	function toggleNumRefLink3() { toggleNumRefLink(3); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink3', toggleNumRefLink3));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleNumRefLink3', toggleNumRefLink3));
 
 	/** [ctrl+4] Toggle the numeric-style link formatting with index 4 */
 	function toggleNumRefLink4() { toggleNumRefLink(4); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink4', toggleNumRefLink4));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleNumRefLink4', toggleNumRefLink4));
 
 	/** [ctrl+5] Toggle the numeric-style link formatting with index 5 */
 	function toggleNumRefLink5() { toggleNumRefLink(5); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink5', toggleNumRefLink5));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleNumRefLink5', toggleNumRefLink5));
 
 	/** [ctrl+6] Toggle the numeric-style link formatting with index 6 */
 	function toggleNumRefLink6() { toggleNumRefLink(6); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink6', toggleNumRefLink6));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleNumRefLink6', toggleNumRefLink6));
 
 	/** [ctrl+7] Toggle the numeric-style link formatting with index 7 */
 	function toggleNumRefLink7() { toggleNumRefLink(7); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink7', toggleNumRefLink7));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleNumRefLink7', toggleNumRefLink7));
 
 	/** [ctrl+8] Toggle the numeric-style link formatting with index 8 */
 	function toggleNumRefLink8() { toggleNumRefLink(8); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink8', toggleNumRefLink8));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleNumRefLink8', toggleNumRefLink8));
 
 	/** [ctrl+9] Toggle the numeric-style link formatting with index 9 */
 	function toggleNumRefLink9() { toggleNumRefLink(9); }
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleNumRefLink9', toggleNumRefLink9));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleNumRefLink9', toggleNumRefLink9));
 
 	/** [ctrl+g]
 	 *  Toggle the image-link formatting
@@ -665,25 +664,25 @@ function activate(context) {
 		match = wordText.match(/^!(\[.*\]\(.*\)$)/);
 		if (match) {
 			vscode.env.clipboard.writeText(match[2]).then();
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				return edit.replace(word, match[1]);
-			} )
-			setPosition(position().line, word.end.character + 1);
-			return
+			} ).then((b) => {
+				setPosition(position().line, word.end.character + 1);
+			});
 		}
 
 		match = wordText.match(/^\[(.*)\]\((.*)\)$/);
 		if (match) {
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				return edit.replace(word, '!' + wordText);
-			} )
-			if (match[1].length > 0) {
-				setPosition(position().line, word.end.character + 1);
-			}
-			else {
-				setPosition(position().line, word.start.character + 2);
-			}
-			return
+			} ).then((b) => {
+				if (match[1].length > 0) {
+					setPosition(position().line, word.end.character + 1);
+				}
+				else {
+					setPosition(position().line, word.start.character + 2);
+				}
+			});
 		}
 
 		match = wordText.match(/^\[(.*)\]\[(.+)\]$/);
@@ -695,77 +694,84 @@ function activate(context) {
 		match = wordText.match(new RegExp('^<(' + srx_url + ')>$'));
 		if (match) {
 			// url already <url> formatted
-			editor().edit((edit) => {
-				return edit.replace(word, '![](' + match[1] + ')')
-			} )
-			setPosition(position().line, word.start.character + 2)
-			return
+			return editor().edit((edit) => {
+				return edit.replace(word, '![](' + match[1] + ')');
+			} ).then((b) => {
+				setPosition(position().line, word.start.character + 2);
+			});
 		}
 
-		match = wordText.match(new RegExp('^' + srx_url + '$'))
+		match = wordText.match(new RegExp('^' + srx_url + '$'));
 		if (match) {
 			// unformatted url
-			editor().edit((edit) => {
-				return edit.replace(word, '![](' + match[1] + ')')
-			} )
-			setPosition(position().line, word.start.character + 2)
-			return
+			return editor().edit((edit) => {
+				return edit.replace(word, '![](' + match[1] + ')');
+			} ).then((b) => {
+				setPosition(position().line, word.start.character + 2);
+			});
 		}
 
 		// non-url formatted word: apply the [title](url) format, with word as title
-		editor().edit((edit) => {
+		return editor().edit((edit) => {
 			return edit.replace(word, '!['+wordText+']()');
-		} )
-		setPosition(position().line, word.end.character + 4);
+		} ).then((b) => {
+			setPosition(position().line, word.end.character + 4);
 
-		if (autoPasteLinks) {
-			vscode.env.clipboard.readText().then((content)=>{
-				content = content.trim();
-				if (content.match(new RegExp('^' + srx_url + '$'))) {
-					editor().edit((edit) => {
-						return edit.insert(position(), content);
-					} )
-					setPosition(position().line, word.end.character + content.length + 5);
-					vscode.env.clipboard.writeText('').then();
-				}
-			});
-		}
+			if (autoPasteLinks) {
+				vscode.env.clipboard.readText().then((content)=>{
+					content = content.trim();
+					if (content.match(new RegExp('^' + srx_url + '$'))) {
+						editor().edit((edit) => {
+							return edit.insert(position(), content);
+						} )
+						setPosition(position().line, word.end.character + content.length + 5);
+						vscode.env.clipboard.writeText('').then();
+					}
+				});
+			}
+		});
+		
+
+
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleImageLink', toggleImageLink));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleImageLink', toggleImageLink));
 	
 	/** [ctrl+q]
 	 *  Toggle the blockquote formatting
 	 */
 	function toggleBlockquote() {
 		var line = editor().document.lineAt(position().line);
-		var rx = /(>\s?).*/
-		var match = line.text.match(rx)
+		var rx = /(>\s?).*/;
+		var match = line.text.match(rx);
 		if (match) {
-			editor().edit((edit) => {
-				return edit.delete(new vscode.Range(new vscode.Position(position().line, 0), new vscode.Position(position().line, match[1].length)))
-			} )
-			setPosition(position().line, Math.min(0, position().character - match[1].length))
+			return editor().edit((edit) => {
+				return edit.delete(new vscode.Range(new vscode.Position(position().line, 0), new vscode.Position(position().line, match[1].length)));
+			} ).then((b) => {
+				setPosition(position().line, Math.min(0, position().character - match[1].length));
+			});
 		}
 		else {
-			editor().edit((edit) => {
-				return edit.insert(new vscode.Position(position().line, 0), '> ')
-			} )
-			setPosition(position().line, position().character + 2)
+			return editor().edit((edit) => {
+				return edit.insert(new vscode.Position(position().line, 0), '> ');
+			} ).then((b) => {
+				setPosition(position().line, position().character + 2);
+			});
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleBlockquote', toggleBlockquote));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleBlockquote', toggleBlockquote));
 	
 	/** [ctrl+r]
 	 *  Insert an horizonthal rule at the next line
 	 */
 	function insertHRule() {
 		var line = editor().document.lineAt(position().line);
-		editor().edit((edit) => {
+		return editor().edit((edit) => {
 			return edit.insert(new vscode.Position(position().line, line.text.length), '\n\n--------\n')
-		} )
-		setPosition(position().line + 4, 0)
+		} ).then((b) => {
+			setPosition(position().line + 4, 0);
+		});
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.insertHRule', insertHRule));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.insertHRule', insertHRule));
 	
 	/** [ctrl+k]
 	 *  Toggle the codeblock formatting
@@ -778,26 +784,23 @@ function activate(context) {
 
 			match = selected_text.trim().match(/^`(.*)`$/);
 			if (match) {
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					edit.replace(sel, match[1]);
 				})
-				return
 			}
 
 			match = selected_text.trim().match(/^```(.*)```$/m);
 			if (match) {
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					edit.replace(sel, match[1]);
 				})
-				return
 			}
 
 			match = selected_text.match(/^((?: {4,}|\t)(.*))+$/m);
 			if (match) {
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					edit.replace(sel, selected_text.trim().replace('\n    ', '\n').replace('\n\t', '\n'));
 				})
-				return
 			}
 
 			var selected_text = selected_text.trim()
@@ -809,28 +812,28 @@ function activate(context) {
 				if (sel.isEqual(line.range) || sel.isEqual(line.rangeIncludingLineBreak)) {
 					// same line, whole line
 					if (tabCodeBlock) {
-						editor().edit((edit) => {
+						return editor().edit((edit) => {
 							edit.replace(sel, '\n    ' + selected_text + '\n\n');
 						})
 					} else {
-						editor().edit((edit) => {
+						return editor().edit((edit) => {
 							edit.replace(sel, '```' + selected_text + '```');
 						})
 					}
 
 				} else {
 					// same line, part of the line
-					editor().edit((edit) => {
+					return editor().edit((edit) => {
 						edit.replace(sel, '`' + selected_text + '`');
 					})
 				}
 			} else {
 				if (tabCodeBlock) {
-					editor().edit((edit) => {
+					return editor().edit((edit) => {
 						edit.replace(sel, '\n    ' + selected_text.replace('\n', '\n    ') + '\n\n');
 					})
 				} else {
-					editor().edit((edit) => {
+					return editor().edit((edit) => {
 						edit.replace(sel, '```' + selected_text + '```');
 					})
 				}
@@ -841,19 +844,20 @@ function activate(context) {
 			if (typeof(word) != 'undefined') {
 				var wordText = editor().document.getText(word)
 				match = wordText.match(/^`(.*)`$/);
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					return edit.replace(word, match[1]);
 				} )
 			}
 			else {
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					return edit.insert(position(), '``');
-				} )
-				setPosition(position().line, position().character + 1)
+				} ).then((b) => {
+					setPosition(position().line, position().character + 1);
+				});
 			}
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleCodeblock', toggleCodeblock));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleCodeblock', toggleCodeblock));
 	
 	/** [ctrl+u]
 	 *  Toggle the unordered-list formatting
@@ -864,16 +868,16 @@ function activate(context) {
 
 		var match = selected_text.match(/((?: ?[\*+-] ?)(.*))+/m)
 		if (match) {
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				edit.replace(sel, selected_text.replace(/^ ?[\*+-] ?/m, '').replace(/\n ?[\*+-] ?/m, '\n'));
 			})
 		} else {
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				edit.replace(sel, '\n ' + uListSymbol + ' ' + selected_text.replace('\n', '\n ' + uListSymbol + ' ') + '\n\n');
 			})
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleUList', toggleUList));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleUList', toggleUList));
 	
 	/** [ctrl+o]
 	 *  Toggle the ordered-list formatting
@@ -884,7 +888,7 @@ function activate(context) {
 
 		var match = selected_text.match(/((?: ?\d\. ?)(.*))+/m)
 		if (match) {
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				edit.replace(sel, selected_text.replace(/^ ?\d\. ?/m, '').replace(/\n ?\d\. ?/m, '\n'));
 			})
 		} else {
@@ -902,7 +906,7 @@ function activate(context) {
 				listArr.push(' ' + (i + 1) + '. ' + line.text)
 			}
 
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				edit.replace(sel, prefix + listArr.join('\n') + '\n');
 			})
 
@@ -910,7 +914,7 @@ function activate(context) {
 
 		
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleOList', toggleOList));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleOList', toggleOList));
 	
 	/** [alt+x]
 	 *  Toggle the check-list formatting
@@ -919,18 +923,18 @@ function activate(context) {
 		var sel = selection();
 		var selected_text = editor().document.getText(sel).trim();
 
-		var match = selected_text.match(/((?: ?\[[x ]\] ?)(.*))+/m)
+		var match = selected_text.match(/((?: ?\[[x ]\] ?)(.*))+/m);
 		if (match) {
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				edit.replace(sel, selected_text.replace(/^ ?\[[x ]\] ?/m, '').replace(/\n ?\[[x ]\] ?/m, '\n'));
-			})
+			});
 		} else {
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				edit.replace(sel, '\n [ ] ' + selected_text.replace('\n', '\n [ ] ') + '\n\n');
-			})
+			});
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.toggleChecklist', toggleChecklist));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleChecklist', toggleChecklist));
 
 	/** [alt+c]
 	 *  Check or uncheck the current line of a check-list
@@ -940,18 +944,18 @@ function activate(context) {
 		var match = line.text.match(/^( +)\[([x ])\]( +)(.*)/);
 		if (match) {
 			if (match[2] == ' ') {
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					edit.replace(line.range, match[1] + '[x]' + match[3] + match[4]);
 				})
 			}
 			else if (match[2] == 'x') {
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					edit.replace(line.range, match[1] + '[ ]' + match[3] + match[4]);
 				})
 			}
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.check', check));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.check', check));
 
 	/** [ctrl+t t]
 	 *  Insert a table or format the current selection to a table
@@ -965,7 +969,7 @@ function activate(context) {
 				columns =columns.concat(new Array(Math.max(0, (3 - columns.length))).fill('   '));
 
 				var rowmodel = new Array(columns.length);
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					edit.replace(sel, '|' + columns.join(' | ') + 
 									  '|\n|' + rowmodel.fill(' ------ ').join('|') + 
 									  '|\n|' + rowmodel.fill('   ').join('|') + 
@@ -991,7 +995,7 @@ function activate(context) {
 					lines.push(lineArr);
 				}
 
-				editor().edit((edit) => {
+				return editor().edit((edit) => {
 					edit.replace(sel, lines.map((row) => '| ' + row.join(' | ') + ' |').join('\n') + '\n');
 				})
 
@@ -999,13 +1003,14 @@ function activate(context) {
 		}
 		else{
 			// no selection, an empty table is inserted
-			editor().edit((edit) => {
+			return editor().edit((edit) => {
 				edit.replace(sel, '\n|   |   |\n| ----- | ----- |\n|   |   |\n|   |   |\n');
-			})
-			setPosition(sel.start.line + 1, sel.start.character + 2);
+			}).then((b) => {
+				setPosition(sel.start.line + 1, sel.start.character + 2);
+			});
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.insertTable', insertTable));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.insertTable', insertTable));
 	
 	/** [ctrl+t right]
 	 *  Add a column to the current table
@@ -1047,11 +1052,11 @@ function activate(context) {
 		var contentText = editor().document.getText(new vscode.Range(new vscode.Position(startLine + 2, 0), new vscode.Position(endLine + 1, 0)));
 		contentText = contentText.replace(/(\r?\n)/g, '   |$&');
 
-		editor().edit((edit) => {
+		return editor().edit((edit) => {
 			edit.replace(new vscode.Range(new vscode.Position(startLine, 0), new vscode.Position(endLine + 1, 0)), headerText + sepsText + contentText);
 		})
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.tableAddCol', tableAddCol));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.tableAddCol', tableAddCol));
 	
 	/** [ctrl+t down]
 	 *  Append a row at the end of the current table
@@ -1075,11 +1080,11 @@ function activate(context) {
 		line = editor().document.lineAt(endLine);
 		var nbCols = line.text.split('|').length - 1
 
-		editor().edit((edit) => {
+		return editor().edit((edit) => {
 			edit.insert(new vscode.Position(endLine + 1, 0), '|' + new Array(nbCols).join('   |') + '\n');
 		})
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('fastmd.tableAddRow', tableAddRow));
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.tableAddRow', tableAddRow));
 	
 }
 exports.activate = activate;
@@ -1090,5 +1095,7 @@ function deactivate() {}
 
 module.exports = {
 	activate,
-	deactivate
+	deactivate,
+	reEscape,
+	mdEscape
 }
