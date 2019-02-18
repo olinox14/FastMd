@@ -28,7 +28,7 @@ function activate(context) {
 
 	const italicSymbol = '*';     // has to be one-character only
 	const uListSymbol = '*';     // has to be one-character only
-	const cleverUnlink = true;    // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
+	const cleverUnlink = false;    // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
 	const autoPasteLinks = true;    // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
 	const autoRef = true;         // Move the url at the bottom of the document when numeric link reference formatting is applied
 	const tabCodeBlock = true;     // block of code are formatted with tab pattern (instead of ```code```)
@@ -257,15 +257,15 @@ function activate(context) {
 	function toggleLink() {
 
 		// # Patterns and behaviours :
-		// > (% is the expected position of the cursor after the operation)
+		// > (§ is the expected position of the cursor after the operation)
 		// -----------------------------
 		// A. [abc](url) => do nothing
-		// B. [abc]() => abc%  // abc can be an empty string
-		// C. [](url) => <url>%
-		// D. <url> => url%
-		// E. url => [%](url)
-		// F1. abc => [abc](%)     // if none url in the clipboard; abc can be an empty string
-		// F2. abc => [abc](url)%  // if an url was found in the clipboard; abc can be an empty string
+		// B. [abc]() => abc§  // abc can be an empty string
+		// C. [](url) => <url>§
+		// D. <url> => url§
+		// E. url => [§](url)
+		// F1. abc => [abc](§)     // if none url in the clipboard; abc can be an empty string
+		// F2. abc => [abc](url)§  // if an url was found in the clipboard; abc can be an empty string
 
 		function getWordRange() {
 			if (!selection().isEmpty) {
@@ -384,7 +384,7 @@ function activate(context) {
 	/** Toggle the numeric-style link formatting to 'num' */
 	function toggleNumRefLink(num) {
 		// # Patterns and behaviours :
-		// > (% is the expected position of the cursor after the operation)
+		// > (§ is the expected position of the cursor after the operation)
 		// -----------------------------
 		// A. [abc](url) => [abc][n]   (...)   [n]: url
 		// B. [abc]() => [abc][n]
@@ -473,7 +473,7 @@ function activate(context) {
 			if (autoRef) {
 				url = retrieveUrl();
 				if (url.length > 0) {
-					return neditor().edit((edit) => {
+					return editor().edit((edit) => {
 						return edit.replace(word, '[' + match[1] + '][' + num + ']');
 					} ).then((b) => {
 						setPosition(word.start.line, word.start.character + 1);
@@ -617,14 +617,14 @@ function activate(context) {
 	 */
 	function toggleImageLink() {
 		// # Patterns and behaviours :
-		// > (% is the expected position of the cursor after the operation)
+		// > (§ is the expected position of the cursor after the operation)
 		// -----------------------------
-		// A. [abc](url) => ![abc](url)%
-		// B. [abc]() => ![abc](%)
-		// C. abc => ![abc](%)
-		// D. url => ![%](url)
-		// E. <url> => ![%](url)
-		// F. ![abc](url) => [abc](url)%
+		// A. [abc](url) => ![abc](url)§
+		// B. [abc]() => ![abc](§)
+		// C. abc => ![abc](§)
+		// D. url => ![§](url)
+		// E. <url> => ![§](url)
+		// F. ![abc](url) => [abc](url)§
 
 		function getWordRange() {
 			if (!selection().isEmpty) {
@@ -730,9 +730,6 @@ function activate(context) {
 				});
 			}
 		});
-		
-
-
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleImageLink', toggleImageLink));
 	
