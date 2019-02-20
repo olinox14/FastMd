@@ -4,6 +4,7 @@ const vscode = require('vscode');
 const assert = require('assert');
 const path = require('path');
 const fullmd = require('../fullmd');
+var tmp = require('tmp');
 
 let testFile = path.join(__dirname, 'blank.md');
 
@@ -11,74 +12,99 @@ function normalize(text) {
 	return text.replace(/\r\n/g, '\n').replace(/\t/g, '    ');
 }
 
+function parsePattern(pattern) {
+	pattern = normalize(pattern);
+	let patternParts = pattern.split('§');
+	let selection;
+
+	if (pattern.indexOf('§') < 0) {
+		pattern += '§'
+	}
+
+	let anchor;
+	let active;
+	let iline = 0;
+	let ichar = 0;
+	for (let i=0;i<=pattern.length;i++) {
+		let char = pattern.charAt(i);
+		if (char == '\n') {
+			iline++;
+			ichar = 0;
+		} else if (char == '§') {
+			if (typeof(anchor) == 'undefined') {
+				anchor = new vscode.Position(iline, ichar);
+			} else {
+				active = new vscode.Position(iline, ichar);
+				break;
+			}
+		} else {
+			ichar++;
+		}
+	}
+	if (typeof(active) == 'undefined') {
+		active = anchor;
+	}
+	
+	if (active == null) {
+		active = anchor
+	}
+	
+	return [patternParts.join(''), new vscode.Selection(anchor, active)]
+}
+
 async function runtest(command, pattern, expected) {
 
-	// process the input
-	pattern = normalize(pattern);
-	expected = normalize(expected);
+	var tmpobj = tmp.fileSync({prefix: command, postfix: '.md'});
+	let document = await vscode.workspace.openTextDocument(tmpobj.name);
+	let editor = await vscode.window.showTextDocument(document);
+	try {
+		await runTestIn(editor, command, pattern, expected);
+	} finally {
+		vscode.window.activeTextEditor = editor;
+		await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+		// vscode.env.clipboard.writeText('').then();
+		await tmpobj.removeCallback();
+	}
+}
 
-	var patternParts = pattern.split('§');
-	var expectedParts = expected.split('§');
+async function runTestIn(editor, command, pattern, expected) {
 
-	var patternText = patternParts.join('');
-	var expectedText = expectedParts.join('');
+	let [patternText, patternSelection] = parsePattern(pattern);
+	let [expectedText, expectedSelection] = parsePattern(expected);
 
-	// open the testing file
-	var document = await vscode.workspace.openTextDocument(testFile);
-	var editor = await vscode.window.showTextDocument(document)
+	// open the testing file and update the testing file content
+	await editor.edit((edit) => {
+		let fullRange = new vscode.Range(new vscode.Position(0, 0), editor.document.positionAt(editor.document.getText().length));
+		edit.replace(fullRange, patternText);
+	});
 
-	// update the testing file content
-    var edit = await editor.edit(editBuilder => {
-                let fullRange = new vscode.Range(new vscode.Position(0, 0), editor.document.positionAt(editor.document.getText().length));
-                editBuilder.delete(fullRange);
-                editBuilder.insert(new vscode.Position(0, 0), patternText);
-			})
-	
-	// set selection
-	var anchor;
-	var pos;
-	switch(patternParts.length) {
-		case 1:
-			anchor = editor.document.positionAt(pattern.length);
-			pos = anchor;
-		case 2:
-			anchor = editor.document.positionAt(patternParts[0].length);
-			pos = anchor;
-			break;
-		case 3:
-			anchor = editor.document.positionAt(patternParts[0].length);
-			pos = editor.document.positionAt(patternParts[0].length + patternParts[1].length);
-			break;
-		default:
-			throw 'Too much anchors'
-	} 
-	vscode.window.activeTextEditor.selection = new vscode.Selection(anchor, pos);
+	editor.selection = patternSelection;
 
 	// exec the command
-	var r = await vscode.commands.executeCommand(command);
+	await vscode.commands.executeCommand(command);
 	
 	// Get the resulting text and format to readable result
-	var editor = vscode.window.activeTextEditor;
 	let result;
 	if (editor.selection.start.isEqual(editor.selection.end)) {
 		result = editor.document.getText(new vscode.Range(new vscode.Position(0,0), editor.selection.start)) + '§' + 
-					 editor.document.getText(new vscode.Range(editor.selection.end, editor.document.positionAt(editor.document.getText().length)));
+					editor.document.getText(new vscode.Range(editor.selection.end, editor.document.positionAt(editor.document.getText().length)));
 	} else {
 		result = editor.document.getText(new vscode.Range(new vscode.Position(0,0), editor.selection.start)) + '§' + 
-					 editor.document.getText(editor.selection) + '§' + 
-					 editor.document.getText(new vscode.Range(editor.selection.end, editor.document.positionAt(editor.document.getText().length)));
+					editor.document.getText(editor.selection) + '§' + 
+					editor.document.getText(new vscode.Range(editor.selection.end, editor.document.positionAt(editor.document.getText().length)));
 	}
 	result = normalize(result);
 
 	// test
-	assert.deepEqual(result, expected, "'" + pattern + "' => '" + result + "' (expected: '" + expected + "')");
-}
+	let description = "'" + pattern.replace(/\n/g, '\\n') + "' => '" + result.replace(/\n/g, '\\n') + "' (expected: '" + expected.replace(/\n/g, '\\n') + "')"
+	assert.deepStrictEqual(result, expected, description);
 
-function sel(l1,c1,l2,c2) { return new vscode.Selection(l1,c1,l2,c2)}
+}
 
 suite("Formatting", function() {
 
 	suiteSetup(async function() {
+		// await vscode.env.clipboard.writeText('');
 		await vscode.workspace.openTextDocument(testFile);
 	});
 
@@ -92,172 +118,326 @@ suite("Formatting", function() {
 		assert.strictEqual(fullmd.mdEscape('[]-{}()*+.\\#`_!'), '\\[\\]\\-\\{\\}\\(\\)\\*\\+\\.\\\\\\#\\`\\_\\!');
 	});
 
-	test("addLinebreak", async function() {
-		await runtest('fullmd.addLinebreak', 'text§', 'text  \n§');
+	test("addLinebreak", function(done) {
+		runtest('fullmd.addLinebreak', 'text§', 'text  \n§').then(done, done);
 	});
 
-	test("escape", async function() {
-		await runtest('fullmd.escape', '§(2 + 2) * 2 - 1 = 7§', '§\\(2 \\+ 2\\) \\* 2 \\- 1 = 7§');
+	test("escape", function(done) {
+		runtest('fullmd.escape', '§(2 + 2) * 2 - 1 = 7§', '§\\(2 \\+ 2\\) \\* 2 \\- 1 = 7§').then(done, done);
 	});
 
-	test("headerUp", async function() {
-		await runtest('fullmd.headerUp', 'Abcd§', '# Abcd§');
-		await runtest('fullmd.headerUp', '# Abcd§', '## Abcd§');
-		await runtest('fullmd.headerUp', '##### Abcd§', '##### Abcd§');
+	test("headerUp", function(done) {
+		runtest('fullmd.headerUp', 'Abcd§', '# Abcd§').then(done, done);
+	});
+	test("headerUp", function(done) {
+		runtest('fullmd.headerUp', '# Abcd§', '## Abcd§').then(done, done);
+	});
+	test("headerUp", function(done) {
+		runtest('fullmd.headerUp', '##### Abcd§', '##### Abcd§').then(done, done);
 	});
 
-	test("headerDown", async function() {
-		await runtest('fullmd.headerDown', '##### Abcd§', '#### Abcd§');
-		await runtest('fullmd.headerDown', '# Abcd§', 'Abcd§');
-		await runtest('fullmd.headerDown', 'Abcd§', 'Abcd§');
+	test("headerDown", function(done) {
+		runtest('fullmd.headerDown', '##### Abcd§', '#### Abcd§').then(done, done);
+	});
+	test("headerDown", function(done) {
+		runtest('fullmd.headerDown', '# Abcd§', 'Abcd§').then(done, done);
+	});
+	test("headerDown", function(done) {
+		runtest('fullmd.headerDown', 'Abcd§', 'Abcd§').then(done, done);
 	});
 
-	test("setHn", async function() {
-		await runtest('fullmd.setH1', 'Abcd§', '# Abcd§');
-		await runtest('fullmd.setH1', '# Abcd§', '# Abcd§');
-		await runtest('fullmd.setH1', '## Abcd§', '# Abcd§');
-
-		await runtest('fullmd.setH2', 'Abcd§', '## Abcd§');
-		await runtest('fullmd.setH2', '## Abcd§', '## Abcd§');
-		await runtest('fullmd.setH2', '### Abcd§', '## Abcd§');
-
-		await runtest('fullmd.setH3', 'Abcd§', '### Abcd§');
-		await runtest('fullmd.setH3', '### Abcd§', '### Abcd§');
-		await runtest('fullmd.setH3', '#### Abcd§', '### Abcd§');
-
-		await runtest('fullmd.setH4', 'Abcd§', '#### Abcd§');
-		await runtest('fullmd.setH4', '#### Abcd§', '#### Abcd§');
-		await runtest('fullmd.setH4', '##### Abcd§', '#### Abcd§');
-
-		await runtest('fullmd.setH5', 'Abcd§', '##### Abcd§');
-		await runtest('fullmd.setH5', '##### Abcd§', '##### Abcd§');
-		await runtest('fullmd.setH5', '## Abcd§', '##### Abcd§');
+	test("setH1", function(done) {
+		runtest('fullmd.setH1', 'Abcd§', '# Abcd§').then(done, done);
+	});
+	test("setH1", function(done) {
+		runtest('fullmd.setH1', '# Abcd§', '# Abcd§').then(done, done);
+	});
+	test("setH1", function(done) {
+		runtest('fullmd.setH1', '## Abcd§', '# Abcd§').then(done, done);
+	});
+	test("setH2", function(done) {
+		runtest('fullmd.setH2', 'Abcd§', '## Abcd§').then(done, done);
+	});
+	test("setH2", function(done) {
+		runtest('fullmd.setH2', '## Abcd§', '## Abcd§').then(done, done);
+	});
+	test("setH2", function(done) {
+		runtest('fullmd.setH2', '### Abcd§', '## Abcd§').then(done, done);
+	});
+	test("setH3", function(done) {
+		runtest('fullmd.setH3', 'Abcd§', '### Abcd§').then(done, done);
+	});
+	test("setH3", function(done) {
+		runtest('fullmd.setH3', '### Abcd§', '### Abcd§').then(done, done);
+	});
+	test("setH3", function(done) {
+		runtest('fullmd.setH3', '#### Abcd§', '### Abcd§').then(done, done);
+	});
+	test("setH4", function(done) {
+		runtest('fullmd.setH4', 'Abcd§', '#### Abcd§').then(done, done);
+	});
+	test("setH4", function(done) {
+		runtest('fullmd.setH4', '#### Abcd§', '#### Abcd§').then(done, done);
+	});
+	test("setH4", function(done) {
+		runtest('fullmd.setH4', '##### Abcd§', '#### Abcd§').then(done, done);
+	});
+	test("setH5", function(done) {
+		runtest('fullmd.setH5', 'Abcd§', '##### Abcd§').then(done, done);
+	});
+	test("setH5", function(done) {
+		runtest('fullmd.setH5', '##### Abcd§', '##### Abcd§').then(done, done);
+	});
+	test("setH5", function(done) {
+		runtest('fullmd.setH5', '## Abcd§', '##### Abcd§').then(done, done);
 	});
 	
-	test("toggleItalic", async function() {
-		// TODO: test with a different symbol's conf
-		await runtest('fullmd.toggleItalic', 'Abcd§', '*Abcd*§');
-		await runtest('fullmd.toggleItalic', 'Ab§cd', '*Ab§cd*');
-		await runtest('fullmd.toggleItalic', '§Abcd§', '§*Abcd*§');
-		await runtest('fullmd.toggleItalic', '*Abcd*§', 'Abcd§');
-		await runtest('fullmd.toggleItalic', '*Ab§cd*', 'Ab§cd');
-		await runtest('fullmd.toggleItalic', '§*Abcd*§', '§Abcd§');
+	test("toggleItalic", function(done) {    // TODO: test with a different symbol's conf
+		runtest('fullmd.toggleItalic', 'Abcd§', '*Abcd*§').then(done, done);
+	});
+	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleItalic', 'Ab§cd', '*Ab§cd*').then(done, done);
+	});
+	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleItalic', '§Abcd§', '§*Abcd*§').then(done, done);
+	});
+	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleItalic', '*Abcd*§', 'Abcd§').then(done, done);
+	});
+	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleItalic', '*Ab§cd*', 'Ab§cd').then(done, done);
+	});
+	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleItalic', '§*Abcd*§', '§Abcd§').then(done, done);
 	});
 
-	test("toggleBold", async function() {
-		await runtest('fullmd.toggleBold', 'Abcd§', '**Abcd**§');
-		await runtest('fullmd.toggleBold', 'Ab§cd', '**Ab§cd**');
-		await runtest('fullmd.toggleBold', '§Abcd§', '§**Abcd**§');
-		await runtest('fullmd.toggleBold', '**Abcd**§', 'Abcd§');
-		await runtest('fullmd.toggleBold', '**Ab§cd**', 'Ab§cd');
-		await runtest('fullmd.toggleBold', '§**Abcd**§', '§Abcd§');
+	test("toggleBold", function(done) {
+		runtest('fullmd.toggleBold', 'Abcd§', '**Abcd**§').then(done, done);
+	});
+	test("toggleBold", function(done) {
+		runtest('fullmd.toggleBold', 'Ab§cd', '**Ab§cd**').then(done, done);
+	});
+	test("toggleBold", function(done) {
+		runtest('fullmd.toggleBold', '§Abcd§', '§**Abcd**§').then(done, done);
+	});
+	test("toggleBold", function(done) {
+		runtest('fullmd.toggleBold', '**Abcd**§', 'Abcd§').then(done, done);
+	});
+	test("toggleBold", function(done) {
+		runtest('fullmd.toggleBold', '**Ab§cd**', 'Ab§cd').then(done, done);
+	});
+	test("toggleBold", function(done) {
+		runtest('fullmd.toggleBold', '§**Abcd**§', '§Abcd§').then(done, done);
 	});
 
-	test("toggleStrikethrough", async function() {
-		await runtest('fullmd.toggleStrikethrough', 'Abcd§', '~~Abcd~~§');
-		await runtest('fullmd.toggleStrikethrough', 'Ab§cd', '~~Ab§cd~~');
-		await runtest('fullmd.toggleStrikethrough', '§Abcd§', '§~~Abcd~~§');
-		await runtest('fullmd.toggleStrikethrough', '~~Abcd~~§', 'Abcd§');
-		await runtest('fullmd.toggleStrikethrough', '~~Ab§cd~~', 'Ab§cd');
-		await runtest('fullmd.toggleStrikethrough', '§~~Abcd~~§', '§Abcd§');
+	test("toggleStrikethrough", function(done) {
+		runtest('fullmd.toggleStrikethrough', 'Abcd§', '~~Abcd~~§').then(done, done);
+	});
+	test("toggleStrikethrough", function(done) {
+		runtest('fullmd.toggleStrikethrough', 'Ab§cd', '~~Ab§cd~~').then(done, done);
+	});
+	test("toggleStrikethrough", function(done) {
+		runtest('fullmd.toggleStrikethrough', '§Abcd§', '§~~Abcd~~§').then(done, done);
+	});
+	test("toggleStrikethrough", function(done) {
+		runtest('fullmd.toggleStrikethrough', '~~Abcd~~§', 'Abcd§').then(done, done);
+	});
+	test("toggleStrikethrough", function(done) {
+		runtest('fullmd.toggleStrikethrough', '~~Ab§cd~~', 'Ab§cd').then(done, done);
+	});
+	test("toggleStrikethrough", function(done) {
+		runtest('fullmd.toggleStrikethrough', '§~~Abcd~~§', '§Abcd§').then(done, done);
 	});
 	
+	test("toggleLink", function(done) {   // TODO: test the 'cleverUnlink' facility
+		runtest('fullmd.toggleLink', '[abc](www.test.url)§', '[abc](www.test.url)§').then(done, done);
+	});
+	test("toggleLink", function(done) {
+		runtest('fullmd.toggleLink', '[abc]()§', 'abc§').then(done, done);
+	});
+	test("toggleLink", function(done) {
+		runtest('fullmd.toggleLink', '[](www.test.url)§', '<www.test.url>§').then(done, done);
+	});
+	test("toggleLink", function(done) {
+		runtest('fullmd.toggleLink', '<www.test.url>§', 'www.test.url§').then(done, done);
+	});
+	test("toggleLink", function(done) {
+		runtest('fullmd.toggleLink', 'www.test.url§', '[§](www.test.url)').then(done, done);
+	});
+	test("toggleLink", function(done) {
+		runtest('fullmd.toggleLink', 'abc§', '[abc](§)').then(done, done);
+	});
 	test("toggleLink", async function() {
-		// TODO: test the 'cleverUnlink' facility
-		await runtest('fullmd.toggleLink', '[abc](www.test.url)§', '[abc](www.test.url)§');
-		await runtest('fullmd.toggleLink', '[abc]()§', 'abc§');
-		await runtest('fullmd.toggleLink', '[](www.test.url)§', '<www.test.url>§');
-		await runtest('fullmd.toggleLink', '<www.test.url>§', 'www.test.url§');
-		await runtest('fullmd.toggleLink', 'www.test.url§', '[§](www.test.url)');
-		await runtest('fullmd.toggleLink', 'abc§', '[abc](§)');
-
-		await vscode.env.clipboard.writeText('www.test.url');
+		await vscode.env.clipboard.writeText('www.test.url')
 		await runtest('fullmd.toggleLink', 'abc§', '[abc](www.test.url)§');
-		await vscode.env.clipboard.writeText('');
 	});
 
-	test("toggleNumRefLink", async function() {
-		// TODO: replace '1' by n, in a for loop with i=1 to 9
-		await runtest('fullmd.toggleNumRefLink1', '[abc](www.test.url)§', '[abc][1]§\n[1]: www.test.url');
-		await runtest('fullmd.toggleNumRefLink1', '[abc]()§', '[abc][1]§');
-		await runtest('fullmd.toggleNumRefLink1', 'abc§', '[abc][1]§');
-		await runtest('fullmd.toggleNumRefLink1', 'www.test.url§', '[][1]§\n[1]: www.test.url');
-		await runtest('fullmd.toggleNumRefLink1', '[abc][1]\n[1]: www.test.url§', '[abc](www.test.url)§\n[1]: www.test.url');
-		await runtest('fullmd.toggleNumRefLink1', '[abc][1]§', '[abc]()§');
+	test("toggleNumRefLink", function(done) {
+		runtest('fullmd.toggleNumRefLink1', '[abc](www.test.url)§', '[abc][1]§\n[1]: www.test.url').then(done, done);
+	});
+	test("toggleNumRefLink", function(done) {
+		runtest('fullmd.toggleNumRefLink1', '[abc](www.test.url)§ abcd\nef gh\ni jkl', '[abc][1]§ abcd\nef gh\ni jkl\n[1]: www.test.url').then(done, done);
+	});
+	test("toggleNumRefLink", function(done) {
+		runtest('fullmd.toggleNumRefLink1', '[abc]()§', '[abc][1]\n[1]: §').then(done, done);
+	});
+	test("toggleNumRefLink", function(done) {
+		runtest('fullmd.toggleNumRefLink1', 'abc§', '[abc][1]§').then(done, done);
+	});
+	test("toggleNumRefLink", function(done) {
+		runtest('fullmd.toggleNumRefLink1', '<www.test.url>§', '<www.test.url>§').then(done, done);  // do nothing
+	});
+	test("toggleNumRefLink", function(done) {
+		runtest('fullmd.toggleNumRefLink1', 'www.test.url§', 'www.test.url§').then(done, done);  // do nothing
+	});
+	test("toggleNumRefLink", function(done) {
+		runtest('fullmd.toggleNumRefLink1', '[abc][1]§\n[1]: www.test.url', '[abc](www.test.url)§\n[1]: www.test.url').then(done, done);
+	});
+	test("toggleNumRefLink", function(done) {
+		runtest('fullmd.toggleNumRefLink1', '[abc][1]§', '[abc]()§').then(done, done);
 	});
 
-	test("toggleImageLink", async function() {
-		await runtest('fullmd.toggleImageLink', '[abc](www.test.url)§', '![abc](www.test.url)§');
-		await runtest('fullmd.toggleImageLink', '[abc]()§', '![abc](§)');
-		await runtest('fullmd.toggleImageLink', 'abc§', '![abc](§)');
-		await runtest('fullmd.toggleImageLink', 'www.test.url§', '![§](www.test.url)');
-		await runtest('fullmd.toggleImageLink', '<www.test.url>§', '![§](www.test.url)');
-		await runtest('fullmd.toggleImageLink', '![abc](www.test.url)§', '[abc](www.test.url)§');
+	test("toggleImageLink", function(done) {
+		runtest('fullmd.toggleImageLink', '[abc](www.test.url)§', '![abc](www.test.url)§').then(done, done);
+	});
+	test("toggleImageLink", function(done) {
+		runtest('fullmd.toggleImageLink', '[abc]()§', '![abc](§)').then(done, done);
+	});
+	test("toggleImageLink", function(done) {
+		runtest('fullmd.toggleImageLink', 'abc§', '![abc](§)').then(done, done);
+	});
+	test("toggleImageLink", function(done) {
+		runtest('fullmd.toggleImageLink', 'www.test.url§', '![§](www.test.url)').then(done, done);
+	});
+	test("toggleImageLink", function(done) {
+		runtest('fullmd.toggleImageLink', '<www.test.url>§', '![§](www.test.url)').then(done, done);
+	});
+	test("toggleImageLink", function(done) {
+		runtest('fullmd.toggleImageLink', '![abc](www.test.url)§', '[abc](www.test.url)§').then(done, done);
 	});
 
-	test("toggleBlockquote", async function() {
-		await runtest('fullmd.toggleBlockquote', 'abcdef§', '> abcdef§');
-		await runtest('fullmd.toggleBlockquote', 'abcdef\nghijk§', 'abcdef\n> ghijk§');
+	test("toggleBlockquote", function(done) {
+		runtest('fullmd.toggleBlockquote', 'abcdef§', '> abcdef§').then(done, done);
+	});
+	test("toggleBlockquote", function(done) {
+		runtest('fullmd.toggleBlockquote', 'abcdef\nghijk§', 'abcdef\n> ghijk§').then(done, done);
 	});
 
-	test("insertHRule", async function() {
-		await runtest('fullmd.insertHRule', 'abc§def', 'abc\n\n--------\ndef§');
+	test("insertHRule", function(done) {
+		runtest('fullmd.insertHRule', 'abcdef§', 'abcdef\n\n--------\n§').then(done, done);
 	});
 
-	test("toggleCodeblock", async function() {
-		// TODO: test with 'tabCodeBlock' option to false
-		await runtest('fullmd.toggleCodeblock', 'ab§cd§ef', 'ab§`cd`§ef');
-		await runtest('fullmd.toggleCodeblock', 'ab§`cd`§ef', 'ab§cd§ef');
-		await runtest('fullmd.toggleCodeblock', 'abcd§ef', 'abcd`§`ef');
-		await runtest('fullmd.toggleCodeblock', 'abcd`§`ef', 'abcd§ef');
-		await runtest('fullmd.toggleCodeblock', '§abcd§', '§\n    abcdef\n\n§');
-		await runtest('fullmd.toggleCodeblock', '§\n    abcdef\n\n§', '§abcd§');
-		await runtest('fullmd.toggleCodeblock', '§abcd\nefgh§', '§\n    abcd\n    efgh\n\n§');
-		await runtest('fullmd.toggleCodeblock', '§\n    abcd\n    efgh\n\n§', '§abcd\nefgh§');
+	test("toggleCodeblock", function(done) {   // TODO: test with 'tabCodeBlock' option to false
+		runtest('fullmd.toggleCodeblock', 'ab§cd§ef', 'ab§`cd`§ef').then(done, done);
+	});
+	test("toggleCodeblock", function(done) {
+		runtest('fullmd.toggleCodeblock', 'ab§`cd`§ef', 'ab§cd§ef').then(done, done);
+	});
+	test("toggleCodeblock", function(done) {
+		runtest('fullmd.toggleCodeblock', 'abcd§ef', 'abcd`§`ef').then(done, done);
+	});
+	test("toggleCodeblock", function(done) {
+		runtest('fullmd.toggleCodeblock', 'abcd`§`ef', 'abcd§ef').then(done, done);
+	});
+	test("toggleCodeblock", function(done) {
+		runtest('fullmd.toggleCodeblock', '§abcdef§', '§\n    abcdef\n\n§').then(done, done);
+	});
+	test("toggleCodeblock", function(done) {
+		runtest('fullmd.toggleCodeblock', '§\n    abcdef\n\n§', '§abcdef\n§').then(done, done);
+	});
+	test("toggleCodeblock", function(done) {
+		runtest('fullmd.toggleCodeblock', '§abcd\nefgh\n§', '§\n    abcd\n    efgh\n\n§').then(done, done);
+	});
+	test("toggleCodeblock", function(done) {
+		runtest('fullmd.toggleCodeblock', '§\n    abcd\n    efgh\n\n§', '§abcd\nefgh\n§').then(done, done);
 	});
 
-	test("toggleUList", async function() {
-		await runtest('fullmd.toggleUList', 'test§', ' * test§');
-		await runtest('fullmd.toggleUList', '§a\nb\nc§', '§ * a\n * b\n * c§');
-		await runtest('fullmd.toggleUList', ' * test§', 'test§');
-		await runtest('fullmd.toggleUList', '§ * a\n * b\n * c§', '§a\nb\nc§');
+	test("toggleUList", function(done) {
+		runtest('fullmd.toggleUList', 'test§', '§* test§').then(done, done);
+	});
+	test("toggleUList", function(done) {
+		runtest('fullmd.toggleUList', 'abc\ntest§\ndef', 'abc\n§* test\n§\ndef').then(done, done);
+	});
+	test("toggleUList", function(done) {
+		runtest('fullmd.toggleUList', '§a\nb\nc\n§', '§* a\n* b\n* c\n§').then(done, done);
+	});
+	test("toggleUList", function(done) {
+		runtest('fullmd.toggleUList', 'abc\n§a\nb\nc§\ndef', 'abc\n§* a\n* b\n* c\n§\ndef').then(done, done);
+	});
+	test("toggleUList", function(done) {
+		runtest('fullmd.toggleUList', '* test§', 'test§').then(done, done);
+	});
+	test("toggleUList", function(done) {
+		runtest('fullmd.toggleUList', '§\n* test\n§', '§test§').then(done, done);
+	});
+	test("toggleUList", function(done) {
+		runtest('fullmd.toggleUList', '§\n* a\n* b\n* c\n§\n', '§a\nb\nc§\n').then(done, done);
 	});
 
-	test("toggleOList", async function() {
-		await runtest('fullmd.toggleOList', 'test§', ' 1. test§');
-		await runtest('fullmd.toggleOList', '§a\nb\nc§', '§ 1. a\n 2. b\n 3. c§');
-		await runtest('fullmd.toggleOList', ' 1. test§', 'test§');
-		await runtest('fullmd.toggleOList', '§ 1. a\n 2. b\n 3. c§', '§a\nb\nc§');
+	test("toggleOList", function(done) {
+		runtest('fullmd.toggleOList', 'test§', '§1. test§').then(done, done);
+	});	
+	test("toggleOList", function(done) {
+		runtest('fullmd.toggleOList', 'abc\ntest§\ndef', 'abc\n§1. test\n§\ndef').then(done, done);
+	});
+	test("toggleOList", function(done) {
+		runtest('fullmd.toggleOList', '§a\nb\nc\n§', '§1. a\n2. b\n3. c\n§').then(done, done);
+	});
+	test("toggleOList", function(done) {
+		runtest('fullmd.toggleOList', '1. test§', 'test§').then(done, done);
+	});
+	test("toggleOList", function(done) {
+		runtest('fullmd.toggleOList', '§1. a\n2. b\n3. c\n§', '§a\nb\nc§').then(done, done);
 	});
 
-	test("toggleChecklist", async function() {
-		await runtest('fullmd.toggleChecklist', 'test§', ' [ ] test§');
-		await runtest('fullmd.toggleChecklist', '§a\nb\nc§', '§ [ ] a\n [ ] b\n [ ] c§');
-		await runtest('fullmd.toggleChecklist', ' [ ] test§', 'test§');
-		await runtest('fullmd.toggleChecklist', '§ [ ] a\n [ ] b\n [ ] c§', '§a\nb\nc§');
+	test("toggleChecklist", function(done) {
+		runtest('fullmd.toggleChecklist', 'test§', '§[ ] test§').then(done, done);
+	});
+	test("toggleChecklist", function(done) {
+		runtest('fullmd.toggleChecklist', 'abc\ntest§\ndef', 'abc\n§[ ] test\n§\ndef').then(done, done);
+	});
+	test("toggleChecklist", function(done) {
+		runtest('fullmd.toggleChecklist', '§a\nb\nc\n§', '§[ ] a\n[ ] b\n[ ] c\n§').then(done, done);
+	});
+	test("toggleChecklist", function(done) {
+		runtest('fullmd.toggleChecklist', '[ ] test§', 'test§').then(done, done);
+	});
+	test("toggleChecklist", function(done) {
+		runtest('fullmd.toggleChecklist', '§[ ] a\n[ ] b\n[ ] c\n§', '§a\nb\nc§').then(done, done);
 	});
 
-	test("check", async function() {
-		await runtest('fullmd.check', ' [ ] test§', ' [x] test§');
-		await runtest('fullmd.check', ' [ ] a\n [ ] b§\n [ ] c', ' [ ] a\n [x] b§\n [ ] c');
-		await runtest('fullmd.check', ' [ ] a\n [x] b§\n [ ] c', ' [ ] a\n [ ] b§\n [ ] c');
+	test("check", function(done) {
+		runtest('fullmd.check', ' [ ] test§', ' [x] test§').then(done, done);
+	});
+	test("check", function(done) {
+		runtest('fullmd.check', ' [ ] a\n [ ] b§\n [ ] c', ' [ ] a\n [x] b§\n [ ] c').then(done, done);
+	});
+	test("check", function(done) {
+		runtest('fullmd.check', ' [ ] a\n [x] b§\n [ ] c', ' [ ] a\n [ ] b§\n [ ] c').then(done, done);
 	});
 
-	test("insertTable", async function() {
-		await runtest('fullmd.insertTable', 'abc§', 'abc\n|   |   |\n| ----- | ----- |\n|   |   |\n|   |   |\n§');
-		await runtest('fullmd.insertTable', '§abc§', '§| abc |   |\n| ----- | ----- |\n|   |   |\n|   |   |\n§');
-		await runtest('fullmd.insertTable', '§a;b;c§', '§| a | b | c |\n| ----- | ----- | ----- |\n|   |   |   |\n|   |   |   |\n§');
-		await runtest('fullmd.insertTable', '§a;b;c\n1;2;3§', '§| a | b | c |\n| ----- | ----- | ----- |\n| 1 | 2 | 3 |\n§');
-		await runtest('fullmd.insertTable', '§a|b|c\n1|2|3§', '§| a | b | c |\n| ----- | ----- | ----- |\n| 1 | 2 | 3 |\n§');
-
+	test("insertTable", function(done) {
+		runtest('fullmd.insertTable', 'abc§', 'abc§\n|   |   |\n| ----- | ----- |\n|   |   |\n|   |   |\n§').then(done, done);
+	});
+	test("insertTable", function(done) {
+		runtest('fullmd.insertTable', '§abc§', '§| abc |     |     |\n| ----- | ----- | ----- |\n|   |   |   |\n|   |   |   |\n§').then(done, done);
+	});
+	test("insertTable", function(done) {
+		runtest('fullmd.insertTable', '§a;b;c§', '§| a | b | c |\n| ----- | ----- | ----- |\n|   |   |   |\n|   |   |   |\n§').then(done, done);
+	});
+	test("insertTable", function(done) {
+		runtest('fullmd.insertTable', '§a;b;c\n1;2;3§', '§| a | b | c |\n| ----- | ----- | ----- |\n| 1 | 2 | 3 |\n§').then(done, done);
+	});
+	test("insertTable", function(done) {
+		runtest('fullmd.insertTable', '§a|b|c\n1|2|3§', '§| a | b | c |\n| ----- | ----- | ----- |\n| 1 | 2 | 3 |\n§').then(done, done);
 	});
 
-	test("tableAddCol", async function() {
-		await runtest('fullmd.tableAddCol', '|   §|   |\n| ----- | ----- |\n|   |   |\n|   |   |', '|   §|   |   |\n| ----- | ----- | ----- |\n|   |   |   |\n|   |   |   |');
+	test("tableAddCol", function(done) {
+		runtest('fullmd.tableAddCol', '|   §|   |\n| ----- | ----- |\n|   |   |\n|   |   |', '|   §|   |   |\n| ----- | ----- | ----- |\n|   |   |   |\n|   |   |   |').then(done, done);
 	});
 
-	test("tableAddRow", async function() {
-		await runtest('fullmd.tableAddRow', '|   §|   |\n| ----- | ----- |\n|   |   |\n|   |   |', '|   §|   |\n| ----- | ----- |\n|   |   |\n|   |   |\n|   |   |');
+	test("tableAddRow", function(done) {
+		runtest('fullmd.tableAddRow', '|   §|   |\n| ----- | ----- |\n|   |   |\n|   |   |', '|   §|   |\n| ----- | ----- |\n|   |   |\n|   |   |\n|   |   |\n').then(done, done);
 	});
 
 });
