@@ -4,6 +4,11 @@
 	"displayName": "FullMd",
 	"description": "Fast Markdown formatting for Visual Studio Code",
 	"version": "0.1.0",
+    "homepage": "https://github.com/olinox14/FullMd",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/olinox14/FullMd.git"
+    },
 	"engines": {
 		"vscode": "^1.31.0"
 	},

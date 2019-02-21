@@ -120,3 +120,14 @@ TODO: add 2 animations for the 2 cases
 
 Once the table has been added, you can use `Ctrl + T Right` and `Ctrl + T Down` to add a column or a row to it.
 
+
+## Credits
+
+Thanks to the author(s) of the following extensions, which inspired me some parts of FullMd:
+
+* [vscode-markdown-shortcuts](https://github.com/mdickin/vscode-markdown-shortcuts)
+* [vscode-markdown](https://github.com/yzhang-gh/vscode-markdown)
+
+## Licence
+
+**FullMd** is under [GNU Licence](LICENCE)
