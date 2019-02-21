@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/olinox14/FullMd.svg?branch=master)](https://travis-ci.org/olinox14/FullMd)
+
 # FullMd
 
 **FullMD** is a [Markdown](https://daringfireball.net/projects/markdown/syntax) formatting [Visual Studio Code](https://code.visualstudio.com/) extension that provides a lot of convenients keyboard shortcuts.

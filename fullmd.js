@@ -1,7 +1,7 @@
 "use strict";
 /*
     FullMD is under GNU Licence
-    @olinox14, feb. 2019
+    @olinox14, 2019
 */
 
 const vscode = require('vscode');
