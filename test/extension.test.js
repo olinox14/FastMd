@@ -202,6 +202,9 @@ suite("Formatting", function() {
 		runtest('fullmd.toggleItalic', '§Abcd§', '§*Abcd*§').then(done, done);
 	});
 	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleItalic', '§Ab cd§', '§*Ab cd*§').then(done, done);
+	});
+	test("toggleItalic", function(done) {
 		runtest('fullmd.toggleItalic', '*Abcd*§', 'Abcd§').then(done, done);
 	});
 	test("toggleItalic", function(done) {
@@ -209,6 +212,9 @@ suite("Formatting", function() {
 	});
 	test("toggleItalic", function(done) {
 		runtest('fullmd.toggleItalic', '§*Abcd*§', '§Abcd§').then(done, done);
+	});
+	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleItalic', '§*Ab cd*§', '§Ab cd§').then(done, done);
 	});
 
 	test("toggleBold", function(done) {
@@ -221,6 +227,9 @@ suite("Formatting", function() {
 		runtest('fullmd.toggleBold', '§Abcd§', '§**Abcd**§').then(done, done);
 	});
 	test("toggleBold", function(done) {
+		runtest('fullmd.toggleBold', '§Ab cd§', '§**Ab cd**§').then(done, done);
+	});
+	test("toggleBold", function(done) {
 		runtest('fullmd.toggleBold', '**Abcd**§', 'Abcd§').then(done, done);
 	});
 	test("toggleBold", function(done) {
@@ -228,6 +237,9 @@ suite("Formatting", function() {
 	});
 	test("toggleBold", function(done) {
 		runtest('fullmd.toggleBold', '§**Abcd**§', '§Abcd§').then(done, done);
+	});
+	test("toggleBold", function(done) {
+		runtest('fullmd.toggleBold', '§**Ab cd**§', '§Ab cd§').then(done, done);
 	});
 
 	test("toggleStrikethrough", function(done) {
@@ -243,10 +255,16 @@ suite("Formatting", function() {
 		runtest('fullmd.toggleStrikethrough', '~~Abcd~~§', 'Abcd§').then(done, done);
 	});
 	test("toggleStrikethrough", function(done) {
+		runtest('fullmd.toggleStrikethrough', '~~Ab cd~~§', 'Ab cd§').then(done, done);
+	});
+	test("toggleStrikethrough", function(done) {
 		runtest('fullmd.toggleStrikethrough', '~~Ab§cd~~', 'Ab§cd').then(done, done);
 	});
 	test("toggleStrikethrough", function(done) {
 		runtest('fullmd.toggleStrikethrough', '§~~Abcd~~§', '§Abcd§').then(done, done);
+	});
+	test("toggleStrikethrough", function(done) {
+		runtest('fullmd.toggleStrikethrough', '§~~Ab cd~~§', '§Ab cd§').then(done, done);
 	});
 	
 	test("toggleLink", function(done) {   // TODO: test the 'cleverUnlink' facility
