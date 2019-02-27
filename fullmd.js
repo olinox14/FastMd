@@ -175,7 +175,11 @@ function activate(context) {
 			if (typeof(word) != 'undefined') {
 				return word;
 			}
-			return editor().document.getWordRangeAtPosition(position(), /\S+/);
+			word = editor().document.getWordRangeAtPosition(position(), /\S+/);
+			if (typeof(word) != 'undefined') {
+				return word;
+			}
+			return selection();
 		}
 
 		let srx = reEscape(symbol) + '(.*)' + reEscape(symbol);
@@ -201,7 +205,7 @@ function activate(context) {
 				await edit.replace(word, symbol + wordText + symbol);
 
 				if (init_selection.isEmpty) {
-					if (init_selection.end.isEqual(word.end)) {
+					if ((!init_selection.isEmpty) && init_selection.end.isEqual(word.end)) {
 						setPosition(init_selection.end.line, init_selection.end.character + (symbol.length * 2));
 					} else {
 						setPosition(init_selection.end.line, init_selection.end.character + symbol.length);
