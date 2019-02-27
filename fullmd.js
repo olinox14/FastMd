@@ -792,7 +792,7 @@ function activate(context) {
 				});
 			}
 
-			match = selected_text.match(/^((?: {4,}|\t)(.*))+$/m);
+			match = selected_text.match(/^(\r?\n)*(( {4,}|\t).*\r?\n)*( {4,}|\t).*(\r?\n)*$/g);
 			if (match) {
 				return editor().edit((edit) => {
 					edit.replace(sel, selected_text.replace(/\t/g, '    ')
