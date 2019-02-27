@@ -734,15 +734,22 @@ function activate(context) {
 		let match = selected_text.match(rx);
 		if (match) {
 			return editor().edit(async function(edit) {
-				await edit.replace(range, selected_text.replace(/^\r?\n/g, '').replace(/\r?\n$/g, '')
-													   .replace(new RegExp('^ *' + lookfor.source + ' ?', 'gm'), ''));
+				let newtext = selected_text.replace(/^\r?\n/g, '').replace(/\r?\n$/g, '')
+				                           .replace(new RegExp('^ *' + lookfor.source + ' ?', 'gm'), '');
+				await edit.replace(range, newtext);
+				if (sel.isEmpty) {
+					setPosition(sel.start.line, sel.start.character + (newtext.length - selected_text.length));
+				}
 			});
 		} else {
 			let before = previousLineNotEmpty(sel.start) ? '\n' : '';
 			let after = nextLineNotEmpty(range.end) ? '\n' : '';
 			return editor().edit(async function(edit) {
-				await edit.replace(range, before + selected_text.replace(/^(.+)/gm, callback) + after);
-				editor().selection = new vscode.Selection(range.start, new vscode.Position(range.end.line + before.length + 1, 0))
+				let newtext = selected_text.length > 0 ? selected_text.replace(/^(.+)$/gm, callback) : callback('');
+				await edit.replace(range, before + newtext + after);
+				if (sel.isEmpty) {
+					setPosition(sel.start.line, sel.start.character + (newtext.length - selected_text.length));
+				}
 			});
 		}
 	}

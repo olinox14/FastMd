@@ -147,13 +147,13 @@ suite("Formatting", function() {
 	});
 
 	test("setH0", function(done) {
-		runtest('fullmd.setH1', 'Abcd§', 'Abcd§').then(done, done);
+		runtest('fullmd.setH0', 'Abcd§', 'Abcd§').then(done, done);
 	});
 	test("setH0", function(done) {
-		runtest('fullmd.setH1', '# Abcd§', 'Abcd§').then(done, done);
+		runtest('fullmd.setH0', '# Abcd§', 'Abcd§').then(done, done);
 	});
 	test("setH0", function(done) {
-		runtest('fullmd.setH1', '## Abcd§', 'Abcd§').then(done, done);
+		runtest('fullmd.setH0', '## Abcd§', 'Abcd§').then(done, done);
 	});
 	test("setH1", function(done) {
 		runtest('fullmd.setH1', 'Abcd§', '# Abcd§').then(done, done);
@@ -380,10 +380,10 @@ suite("Formatting", function() {
 	});
 
 	test("toggleUList", function(done) {
-		runtest('fullmd.toggleUList', 'test§', '§* test§').then(done, done);
+		runtest('fullmd.toggleUList', 'test§', '* test§').then(done, done);
 	});
 	test("toggleUList", function(done) {
-		runtest('fullmd.toggleUList', 'abc\ntest§\ndef', 'abc\n§* test\n§\ndef').then(done, done);
+		runtest('fullmd.toggleUList', 'abc\ntest§\ndef', 'abc\n* test§\n\ndef').then(done, done);
 	});
 	test("toggleUList", function(done) {
 		runtest('fullmd.toggleUList', '§a\nb\nc\n§', '§* a\n* b\n* c\n§').then(done, done);
@@ -402,10 +402,10 @@ suite("Formatting", function() {
 	});
 
 	test("toggleOList", function(done) {
-		runtest('fullmd.toggleOList', 'test§', '§1. test§').then(done, done);
+		runtest('fullmd.toggleOList', 'test§', '1. test§').then(done, done);
 	});	
 	test("toggleOList", function(done) {
-		runtest('fullmd.toggleOList', 'abc\ntest§\ndef', 'abc\n§1. test\n§\ndef').then(done, done);
+		runtest('fullmd.toggleOList', 'abc\ntest§\ndef', 'abc\n1. test§\n\ndef').then(done, done);
 	});
 	test("toggleOList", function(done) {
 		runtest('fullmd.toggleOList', '§a\nb\nc\n§', '§1. a\n2. b\n3. c\n§').then(done, done);
@@ -418,10 +418,10 @@ suite("Formatting", function() {
 	});
 
 	test("toggleChecklist", function(done) {
-		runtest('fullmd.toggleChecklist', 'test§', '§[ ] test§').then(done, done);
+		runtest('fullmd.toggleChecklist', 'test§', '[ ] test§').then(done, done);
 	});
 	test("toggleChecklist", function(done) {
-		runtest('fullmd.toggleChecklist', 'abc\ntest§\ndef', 'abc\n§[ ] test\n§\ndef').then(done, done);
+		runtest('fullmd.toggleChecklist', 'abc\ntest§\ndef', 'abc\n[ ] test§\n\ndef').then(done, done);
 	});
 	test("toggleChecklist", function(done) {
 		runtest('fullmd.toggleChecklist', '§a\nb\nc\n§', '§[ ] a\n[ ] b\n[ ] c\n§').then(done, done);
