@@ -742,8 +742,18 @@ function activate(context) {
 				}
 			});
 		} else {
-			let before = previousLineNotEmpty(sel.start) ? '\n' : '';
-			let after = nextLineNotEmpty(range.end) ? '\n' : '';
+			// let before = previousLineNotEmpty(sel.start) ? '\n' : '';
+			let before = '';
+			let after = '';
+			let prevline = previousLine(range.start);
+			if (prevline != null && (!prevline.isEmptyOrWhitespace) && (!prevline.text.match(rx))) {
+				before = '\n';
+			}
+			let nextline = nextLine(range.end);
+			if (nextline != null && (!nextline.isEmptyOrWhitespace) && (!nextline.text.match(rx))) {
+				after = '\n';
+			}
+
 			return editor().edit(async function(edit) {
 				let newtext = selected_text.length > 0 ? selected_text.replace(/^(.+)$/gm, callback) : callback('');
 				await edit.replace(range, before + newtext + after);
