@@ -18,8 +18,8 @@
 | ----- | ----- |
 | Ctrl + Enter | Insert a **line break** |
 | Ctrl + / | **Escape** special characters from the selection |
-| Ctrl + H | Increase the **header** level |
-| Ctrl + Shift + H | Decrease the **header** level |
+| Ctrl + D | Increase the **header** level |
+| Ctrl + Shift + D | Decrease the **header** level |
 | Ctrl + Shift + [Num] | Set the **header**'s level |
 | Ctrl + I | Toggle **italic** format |
 | Ctrl + B | Toggle **bold** format |

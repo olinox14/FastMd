@@ -205,12 +205,12 @@
 			},
 			{
 				"command": "fullmd.headerUp",
-				"key": "ctrl+h",
+				"key": "ctrl+d",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
 				"command": "fullmd.headerDown",
-				"key": "ctrl+shift+h",
+				"key": "ctrl+shift+d",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
