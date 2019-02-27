@@ -173,7 +173,7 @@ function activate(context) {
 			return editor().document.getWordRangeAtPosition(position(), /\S+/);
 		}
 
-		let srx = reEscape(symbol) + '(\\S*)' + reEscape(symbol);
+		let srx = reEscape(symbol) + '(.*)' + reEscape(symbol);
 		let init_selection = editor().selection;
 		let word = getWordRange();
 		let wordText = editor().document.getText(word);
