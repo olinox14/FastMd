@@ -862,7 +862,7 @@ function activate(context) {
 	 *  Toggle the check-list formatting
 	 */
 	function toggleChecklist() {
-		return prefixLines(((lineText) => '[ ] ' + lineText), /\[[x ]\]/);
+		return prefixLines(((lineText) => '[ ] ' + lineText), /[ +\-\*]*\[[x ]\]/);
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleChecklist', toggleChecklist));
 
@@ -871,7 +871,7 @@ function activate(context) {
 	 */
 	function check() {
 		var line = editor().document.lineAt(position().line);
-		var match = line.text.match(/^( +)\[([x ])\]( +.*)/);
+		var match = line.text.match(/^([ +\-\*]*)\[([x ])\]( *.*)/);
 		if (match) {
 			if (match[2] == ' ') {
 				return editor().edit(async function(edit) {
