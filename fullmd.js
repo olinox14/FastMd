@@ -81,6 +81,7 @@ function activate(context) {
 		return new vscode.Position(lineNumber, editor().document.lineAt(lineNumber).text.length);
 	}
 
+	const srx_url = "(([\\w-]+:\\/\\/?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^\\:\\s]|\\/)))";
 
 	// *** Commands
 
@@ -243,7 +244,6 @@ function activate(context) {
 	/** [ctrl+l]
 	 *  Toggle the link formatting
 	 */
-	const srx_url = "((([A-Za-z]{3,9}:(?:\\/\\/)?)(?:[\\-;:&=\\+\\$,\w]+@)?[A-Za-z0-9\\.\\-]+|(?:www\\.|[\\-;:&=\\+\\$,\w]+@)[A-Za-z0-9\\.\\-]+)((?:\\/[\\+~%\\/\\.\\w\\-_]*)?\\??(?:[\\-\\+=&;%@\\.\w_]*)#?(?:[\\.\\!\\/\\\\\\w]*))?)";
 	function toggleLink() {
 
 		// # Patterns and behaviours :
