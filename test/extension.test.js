@@ -214,6 +214,9 @@ suite("Formatting", function() {
 		runtest('fullmd.toggleItalic', '§Ab cd§', '§*Ab cd*§').then(done, done);
 	});
 	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleItalic', 'Abc § ', 'Abc *§* ').then(done, done);
+	});
+	test("toggleItalic", function(done) {
 		runtest('fullmd.toggleItalic', '*Abcd*§', 'Abcd§').then(done, done);
 	});
 	test("toggleItalic", function(done) {
@@ -224,6 +227,9 @@ suite("Formatting", function() {
 	});
 	test("toggleItalic", function(done) {
 		runtest('fullmd.toggleItalic', '§*Ab cd*§', '§Ab cd§').then(done, done);
+	});
+	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleItalic', 'Abc *§* ', 'Abc § ').then(done, done);
 	});
 
 	test("toggleBold", function(done) {
@@ -238,6 +244,9 @@ suite("Formatting", function() {
 	test("toggleBold", function(done) {
 		runtest('fullmd.toggleBold', '§Ab cd§', '§**Ab cd**§').then(done, done);
 	});
+	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleBold', 'Abc § ', 'Abc **§** ').then(done, done);
+	});
 	test("toggleBold", function(done) {
 		runtest('fullmd.toggleBold', '**Abcd**§', 'Abcd§').then(done, done);
 	});
@@ -250,6 +259,10 @@ suite("Formatting", function() {
 	test("toggleBold", function(done) {
 		runtest('fullmd.toggleBold', '§**Ab cd**§', '§Ab cd§').then(done, done);
 	});
+	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleBold', 'Abc **§** ', 'Abc § ').then(done, done);
+	});
+
 
 	test("toggleStrikethrough", function(done) {
 		runtest('fullmd.toggleStrikethrough', 'Abcd§', '~~Abcd~~§').then(done, done);
@@ -259,6 +272,9 @@ suite("Formatting", function() {
 	});
 	test("toggleStrikethrough", function(done) {
 		runtest('fullmd.toggleStrikethrough', '§Abcd§', '§~~Abcd~~§').then(done, done);
+	});
+	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleStrikethrough', 'Abc § ', 'Abc ~~§~~ ').then(done, done);
 	});
 	test("toggleStrikethrough", function(done) {
 		runtest('fullmd.toggleStrikethrough', '~~Abcd~~§', 'Abcd§').then(done, done);
@@ -275,6 +291,10 @@ suite("Formatting", function() {
 	test("toggleStrikethrough", function(done) {
 		runtest('fullmd.toggleStrikethrough', '§~~Ab cd~~§', '§Ab cd§').then(done, done);
 	});
+	test("toggleItalic", function(done) {
+		runtest('fullmd.toggleStrikethrough', 'Abc ~~§~~ ', 'Abc § ').then(done, done);
+	});
+
 	
 	test("toggleLink", function(done) {   // TODO: test the 'cleverUnlink' facility
 		runtest('fullmd.toggleLink', '[abc](www.test.url)§', '[abc](www.test.url)§').then(done, done);
@@ -447,13 +467,16 @@ suite("Formatting", function() {
 		runtest('fullmd.insertTable', 'abc§', 'abc§\n|   |   |\n| ----- | ----- |\n|   |   |\n|   |   |\n§').then(done, done);
 	});
 	test("insertTable", function(done) {
-		runtest('fullmd.insertTable', '§abc§', '§| abc |     |     |\n| ----- | ----- | ----- |\n|   |   |   |\n|   |   |   |\n§').then(done, done);
+		runtest('fullmd.insertTable', '§abc§', '§| abc |     |\n| ----- | ----- |\n|   |   |\n|   |   |\n§').then(done, done);
 	});
 	test("insertTable", function(done) {
 		runtest('fullmd.insertTable', '§a;b;c§', '§| a | b | c |\n| ----- | ----- | ----- |\n|   |   |   |\n|   |   |   |\n§').then(done, done);
 	});
 	test("insertTable", function(done) {
 		runtest('fullmd.insertTable', '§a;b;c\n1;2;3§', '§| a | b | c |\n| ----- | ----- | ----- |\n| 1 | 2 | 3 |\n§').then(done, done);
+	});
+	test("insertTable", function(done) {
+		runtest('fullmd.insertTable', '§a;b\n1;2§', '§| a | b |\n| ----- | ----- |\n| 1 | 2 |\n§').then(done, done);
 	});
 	test("insertTable", function(done) {
 		runtest('fullmd.insertTable', '§a|b|c\n1|2|3§', '§| a | b | c |\n| ----- | ----- | ----- |\n| 1 | 2 | 3 |\n§').then(done, done);

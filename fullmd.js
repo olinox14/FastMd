@@ -206,7 +206,7 @@ function activate(context) {
 				await edit.replace(word, symbol + wordText + symbol);
 
 				if (init_selection.isEmpty) {
-					if ((!init_selection.isEmpty) && init_selection.end.isEqual(word.end)) {
+					if ((!word.isEmpty) && init_selection.end.isEqual(word.end)) {
 						setPosition(init_selection.end.line, init_selection.end.character + (symbol.length * 2));
 					} else {
 						setPosition(init_selection.end.line, init_selection.end.character + symbol.length);
