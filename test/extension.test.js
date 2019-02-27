@@ -146,6 +146,15 @@ suite("Formatting", function() {
 		runtest('fullmd.headerDown', 'Abcd§', 'Abcd§').then(done, done);
 	});
 
+	test("setH0", function(done) {
+		runtest('fullmd.setH1', 'Abcd§', 'Abcd§').then(done, done);
+	});
+	test("setH0", function(done) {
+		runtest('fullmd.setH1', '# Abcd§', 'Abcd§').then(done, done);
+	});
+	test("setH0", function(done) {
+		runtest('fullmd.setH1', '## Abcd§', 'Abcd§').then(done, done);
+	});
 	test("setH1", function(done) {
 		runtest('fullmd.setH1', 'Abcd§', '# Abcd§').then(done, done);
 	});

@@ -20,7 +20,8 @@
 | Ctrl + / | **Escape** special characters from the selection |
 | Ctrl + D | Increase the **header** level |
 | Ctrl + Shift + D | Decrease the **header** level |
-| Ctrl + Shift + [Num] | Set the **header**'s level |
+| Ctrl + Shift + [Num] | Set the **header**'s level (from 1 to 5) |
+| Ctrl + Shift + 9 | Remove the **header**'s formatting |
 | Ctrl + I | Toggle **italic** format |
 | Ctrl + B | Toggle **bold** format |
 | Ctrl + Alt + S | Toggle **striketrough** format |

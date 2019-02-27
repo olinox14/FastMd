@@ -47,6 +47,11 @@
 				"category": "FullMd"
 			},
 			{
+				"command": "fullmd.setH0",
+				"title": "FullMd: Header Level 0",
+				"category": "FullMd"
+			},
+			{
 				"command": "fullmd.setH1",
 				"title": "FullMd: Header Level 1",
 				"category": "FullMd"
@@ -211,6 +216,11 @@
 			{
 				"command": "fullmd.headerDown",
 				"key": "ctrl+shift+d",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "fullmd.setH0",
+				"key": "ctrl+shift+9",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{

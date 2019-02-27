@@ -131,14 +131,19 @@ function activate(context) {
 	
 	/** Set the header's level to 'level' */
 	function setHeader(level) {
-		var line = editor().document.lineAt(position().line);
-		return editor().edit((edit) => {
-			return edit.replace(new vscode.Range(new vscode.Position(position().line, 0), 
-												 new vscode.Position(position().line, 
-												                     line.text.search(/[^\s#]/))), 
-								'#'.repeat(level) + ' ');
+		let line = editor().document.lineAt(position().line);
+		let match = line.text.match(/^\#* ?(.*)$/m);
+		let newline = level > 0 ? '#'.repeat(level) + ' ' + match[1] : match[1];
+
+		return editor().edit(async function(edit) {
+			await edit.replace(line.range, newline);
+			setPosition(line.lineNumber, newline.length);
 		});
 	}
+
+	/** [ctrl+shift+0] Set the header's level to 0 */
+	function setH0() { return setHeader(0); }
+	context.subscriptions.push(vscode.commands.registerCommand('fullmd.setH0', setH0));
 
 	/** [ctrl+shift+1] Set the header's level to 1 */
 	function setH1() { return setHeader(1); }
