@@ -912,7 +912,7 @@ function activate(context) {
 			var selectedText = editor().document.getText(sel).trim();
 			if (sel.isSingleLine) {
 				var columns = selectedText.split(new RegExp('[' + csvSeparators + ']'));
-				columns =columns.concat(new Array(Math.max(0, (3 - columns.length))).fill('   '));
+				columns =columns.concat(new Array(Math.max(0, (2 - columns.length))).fill('   '));
 
 				var rowmodel = new Array(columns.length);
 				return editor().edit(async function(edit) {
@@ -929,7 +929,7 @@ function activate(context) {
 				var line = editor().document.lineAt(sel.start.line);
 
 				lineArr = line.text.split(new RegExp('[' + csvSeparators + ']'));
-				lineArr = lineArr.concat(new Array(Math.max(0, (3 - lineArr.length))).fill('   '));
+				lineArr = lineArr.concat(new Array(Math.max(0, (2 - lineArr.length))).fill('   '));
 				lines.push(lineArr);
 
 				lineArr = new Array(lines[0].length).fill('-----');
