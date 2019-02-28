@@ -1,6 +1,11 @@
 [![Build Status](https://travis-ci.org/olinox14/FullMd.svg?branch=master)](https://travis-ci.org/olinox14/FullMd)
 
+<style>.content img { border: solid 1px lightgrey; }</style>
+<div class="content">
+
 # FullMd
+
+![demo](/content/demo.gif)
 
 **FullMD** is a [Markdown](https://daringfireball.net/projects/markdown/syntax) formatting [Visual Studio Code](https://code.visualstudio.com/) extension that provides a lot of convenients keyboard shortcuts.
 
@@ -45,58 +50,68 @@
 
 Use `Ctrl + Enter` to insert a markdown line break, i.e. two spaces and a line break
 
-TODO: add animation
-
 ### Escaping
 
 Use `Ctrl + /` to escape each special characters from the selected text.
 
-> Ex: `(2 + 2) * 2 = 8` becomes `\(2 \+ 2\) \* 2 = 8`
-
-TODO: add animation
+![escape](/content/escape.gif)
 
 ### Basic formatting
 
-The basic formatting operations like bold, italic... will perform like this:
+**FullMd** will perform the basic formatting operations, like bold, italic, striketrough, blockquotes, codeblocks...
 
-TODO: add animation for 3 cases: selected, word next cursor, scratch
+![italic](/content/toggleItalic.gif)
+
+![bold](/content/toggleBold.gif)
+
+![toggleBlockquote](/content/toggleBlockquote.gif)
+
+![toggleCodeBlock2](/content/toggleCodeBlock2.gif)
+
+![toggleCodeBlock1](/content/toggleCodeBlock1.gif)
 
 ### Headers
 
-Use `Ctrl + Shift + [Num]` to set the current line's header's level to `num`, whith `num` between 1 and 5.
+Use `Ctrl + Shift + [Num]` to set the current line's header's level to `num`, whith `num` between 1 and 5. `Ctrl + Shift + 9` will reset the format.
+
+![setHeader](/content/setHeader.gif)
 
 Use `Ctrl + h` and `Ctrl + Shift + h` to increment or decrement the header's level.
 
-TODO: add 2 animations for the 2 cases
-
+![headerUpNDown](/content/headerupNDown.gif)
 
 ### Lists
 
-Use `Ctrl + U` to format the selected lines into an unordered list.
+Use:
 
-TODO: add animation
+* `Ctrl + U` to format the selected lines into an unordered list.
+* `Ctrl + O` to format the selected lines into an ordered list.
+* `Alt + X` to format the selected lines into a checklist
+* `Alt + C` to check or uncheck a checklist item.
 
-Use `Ctrl + O` to format the selected lines into an ordered list.
-
-TODO: add animation
-
-Use `Alt + X` to format the selected lines into a checklist, then use `Alt + C` to check or uncheck a line.
-
-TODO: add animation
+![toggleLists](/content/toggleLists.gif)
 
 ### Links
 
 The `Ctrl + L` command will toggle the link formatting.
 
-The behaviour will depends on the target:
+The behaviour will depends on the current selection:
+> NB: '§' is the cursor position
 
-* A. [abc](url) => do nothing
-* B. [abc]() => abc%  // abc can be an empty string
-* C. [](url) => <url>%
-* D. <url> => url%
-* E. url => [%](url)
-* F1. abc => [abc](%)     // if none url in the clipboard; abc can be an empty string
-* F2. abc => [abc](url)%  // if an url was found in the clipboard; abc can be an empty string
+    [abc](url) => [abc](url)   // does nothing
+    [abc]() => abc§            // abc can be an empty string
+    [](url) => <url>§
+    <url> => url§
+    url => [§](url)
+    abc => [abc](§)            // if none url in the clipboard; abc can be an empty string
+    abc => [abc](url)§         // if an url was found in the clipboard; abc can be an empty string
+
+
+![toggleLink1](/content/toggleLink1.gif)
+
+![toggleLink2](/content/toggleLink2.gif)
+
+![toggleLink3](/content/toggleLink3.gif)
 
 ### Numeric references
 
@@ -112,17 +127,24 @@ The `Ctrl + [Num]` command will transform a `[title](link)` formatted link to a 
 
 > The url is automatically added at the end of the current document
 
-If used again, the operation is reversed.
+If used again, the operation is reversed but the reference at the bottom is **NOT** deleted.
 
+![toggleNumLinks](/content/toggleNumLinks.gif)
 
 ### Tables
 
 Use `Ctrl + T T` to insert a table. This command will also format a csv-like block of text.
 
-TODO: add 2 animations for the 2 cases
-
 Once the table has been added, you can use `Ctrl + T Right` and `Ctrl + T Down` to add a column or a row to it.
 
+![insertTable2](/content/insertTable2.gif)
+
+![insertTable](/content/insertTable.gif)
+
+![addCol](/content/addCol.gif)
+
+
+</div>
 
 ## Credits
 
