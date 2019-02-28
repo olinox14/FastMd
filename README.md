@@ -63,9 +63,9 @@ Use `Ctrl + /` to escape each special characters from the selected text.
 
 <kbd><img src="./content/toggleBlockquote.gif" style="border: solid 1px lightgrey;" /></kbd>
 
-<kbd><img src="./content/toggleCodeBlock2.gif" style="border: solid 1px lightgrey;" /></kbd>
+<kbd><img src="./content/toggleCodeblock1.gif" style="border: solid 1px lightgrey;" /></kbd>
 
-<kbd><img src="./content/toggleCodeBlock1.gif" style="border: solid 1px lightgrey;" /></kbd>
+<kbd><img src="./content/toggleCodeblock2.gif" style="border: solid 1px lightgrey;" /></kbd>
 
 ### Headers
 
@@ -75,7 +75,7 @@ Use `Ctrl + Shift + [Num]` to set the current line's header's level to `num`, wh
 
 Use `Ctrl + h` and `Ctrl + Shift + h` to increment or decrement the header's level.
 
-<kbd><img src="./content/headerupNDown.gif" style="border: solid 1px lightgrey;" /></kbd>
+<kbd><img src="./content/headerUpNDown.gif" style="border: solid 1px lightgrey;" /></kbd>
 
 ### Lists
 
