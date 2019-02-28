@@ -8,7 +8,7 @@
 * Set / Increase / Decrease ***header*** level
 * Smart ***links*** formatting
 * Insert ***tables***, add columns or row dynamically, recognize csv
-* Manipulate ***checklists***
+* Easy use of ***checklists***
 
 ## Usage
 
@@ -16,7 +16,7 @@
 
 | Keys | Command |
 | ----- | ----- |
-| Ctrl + Enter | Insert a **line break** |
+| Alt + Enter | Insert a **line break** |
 | Ctrl + / | **Escape** special characters from the selection |
 | Ctrl + D | Increase the **header** level |
 | Ctrl + Shift + D | Decrease the **header** level |
@@ -38,6 +38,8 @@
 | Ctrl + T  T |  Insert or format a **table** |
 | Ctrl + T  Right | **Add a column** to the current table  |
 | Ctrl + T  Down | **Add a row** to the current table |
+| Alt+Z | Toggle **Zen Mode** |
+| Alt+V | Show **side-preview** |
 
 ### Line-breaks
 

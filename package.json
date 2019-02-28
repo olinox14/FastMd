@@ -3,7 +3,7 @@
 	"publisher": "olinox14",
 	"displayName": "FullMd",
 	"description": "Fast Markdown formatting for Visual Studio Code",
-	"version": "0.1.0",
+	"version": "0.1.1",
     "homepage": "https://github.com/olinox14/FullMd",
     "repository": {
         "type": "git",
@@ -200,7 +200,7 @@
 		"keybindings": [
 			{
 				"command": "fullmd.addLinebreak",
-				"key": "ctrl+enter",
+				"key": "alt+enter",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			},
 			{
@@ -366,6 +366,16 @@
 			{
 				"command": "fullmd.tableAddRow",
 				"key": "ctrl+t down",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "workbench.action.toggleZenMode",
+				"key": "alt+z",
+				"when": "editorTextFocus && editorLangId == 'markdown'"
+			},
+			{
+				"command": "markdown.showPreviewToSide",
+				"key": "alt+v",
 				"when": "editorTextFocus && editorLangId == 'markdown'"
 			}
 		]
