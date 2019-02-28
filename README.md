@@ -1,8 +1,5 @@
 [![Build Status](https://travis-ci.org/olinox14/FullMd.svg?branch=master)](https://travis-ci.org/olinox14/FullMd)
 
-<style>.content img { border: solid 1px lightgrey; }</style>
-<div class="content">
-
 # FullMd
 
 ![demo](/content/demo.gif)
@@ -56,9 +53,12 @@ Use `Ctrl + /` to escape each special characters from the selected text.
 
 ![escape](/content/escape.gif)
 
+<kbd><img src="./content/escape.gif" style="border: solid 1px lightgrey;" /></kbd>
+
 ### Basic formatting
 
 **FullMd** will perform the basic formatting operations, like bold, italic, striketrough, blockquotes, codeblocks...
+
 
 ![italic](/content/toggleItalic.gif)
 
@@ -143,8 +143,6 @@ Once the table has been added, you can use `Ctrl + T Right` and `Ctrl + T Down` 
 
 ![addCol](/content/addCol.gif)
 
-
-</div>
 
 ## Credits
 
