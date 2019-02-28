@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/olinox14/FullMd.svg?branch=master)](https://travis-ci.org/olinox14/FullMd) 
 
-# <img src="content/logo.png" style="width:40px;vertical-align:bottom;"/> FullMd
+# <img src="content/logo.png" style="height:40px;vertical-align:bottom;"/> FullMd
 
 ![demo](/content/demo.gif)
 
