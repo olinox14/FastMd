@@ -51,34 +51,31 @@ Use `Ctrl + Enter` to insert a markdown line break, i.e. two spaces and a line b
 
 Use `Ctrl + /` to escape each special characters from the selected text.
 
-![escape](/content/escape.gif)
-
 <kbd><img src="./content/escape.gif" style="border: solid 1px lightgrey;" /></kbd>
 
 ### Basic formatting
 
 **FullMd** will perform the basic formatting operations, like bold, italic, striketrough, blockquotes, codeblocks...
 
+<kbd><img src="./content/toggleItalic.gif" style="border: solid 1px lightgrey;" /></kbd>
 
-![italic](/content/toggleItalic.gif)
+<kbd><img src="./content/toggleBold.gif" style="border: solid 1px lightgrey;" /></kbd>
 
-![bold](/content/toggleBold.gif)
+<kbd><img src="./content/toggleBlockquote.gif" style="border: solid 1px lightgrey;" /></kbd>
 
-![toggleBlockquote](/content/toggleBlockquote.gif)
+<kbd><img src="./content/toggleCodeBlock2.gif" style="border: solid 1px lightgrey;" /></kbd>
 
-![toggleCodeBlock2](/content/toggleCodeBlock2.gif)
-
-![toggleCodeBlock1](/content/toggleCodeBlock1.gif)
+<kbd><img src="./content/toggleCodeBlock1.gif" style="border: solid 1px lightgrey;" /></kbd>
 
 ### Headers
 
 Use `Ctrl + Shift + [Num]` to set the current line's header's level to `num`, whith `num` between 1 and 5. `Ctrl + Shift + 9` will reset the format.
 
-![setHeader](/content/setHeader.gif)
+<kbd><img src="./content/setHeader.gif" style="border: solid 1px lightgrey;" /></kbd>
 
 Use `Ctrl + h` and `Ctrl + Shift + h` to increment or decrement the header's level.
 
-![headerUpNDown](/content/headerupNDown.gif)
+<kbd><img src="./content/headerupNDown.gif" style="border: solid 1px lightgrey;" /></kbd>
 
 ### Lists
 
@@ -89,7 +86,7 @@ Use:
 * `Alt + X` to format the selected lines into a checklist
 * `Alt + C` to check or uncheck a checklist item.
 
-![toggleLists](/content/toggleLists.gif)
+<kbd><img src="./content/toggleLists.gif" style="border: solid 1px lightgrey;" /></kbd>
 
 ### Links
 
@@ -106,12 +103,11 @@ The behaviour will depends on the current selection:
     abc => [abc](§)            // if none url in the clipboard; abc can be an empty string
     abc => [abc](url)§         // if an url was found in the clipboard; abc can be an empty string
 
+<kbd><img src="./content/toggleLink1.gif" style="border: solid 1px lightgrey;" /></kbd>
 
-![toggleLink1](/content/toggleLink1.gif)
+<kbd><img src="./content/toggleLink2.gif" style="border: solid 1px lightgrey;" /></kbd>
 
-![toggleLink2](/content/toggleLink2.gif)
-
-![toggleLink3](/content/toggleLink3.gif)
+<kbd><img src="./content/toggleLink3.gif" style="border: solid 1px lightgrey;" /></kbd>
 
 ### Numeric references
 
@@ -129,7 +125,7 @@ The `Ctrl + [Num]` command will transform a `[title](link)` formatted link to a 
 
 If used again, the operation is reversed but the reference at the bottom is **NOT** deleted.
 
-![toggleNumLinks](/content/toggleNumLinks.gif)
+<kbd><img src="./content/toggleNumLinks.gif" style="border: solid 1px lightgrey;" /></kbd>
 
 ### Tables
 
@@ -137,12 +133,11 @@ Use `Ctrl + T T` to insert a table. This command will also format a csv-like blo
 
 Once the table has been added, you can use `Ctrl + T Right` and `Ctrl + T Down` to add a column or a row to it.
 
-![insertTable2](/content/insertTable2.gif)
+<kbd><img src="./content/insertTable2.gif" style="border: solid 1px lightgrey;" /></kbd>
 
-![insertTable](/content/insertTable.gif)
+<kbd><img src="./content/insertTable.gif" style="border: solid 1px lightgrey;" /></kbd>
 
-![addCol](/content/addCol.gif)
-
+<kbd><img src="./content/addCol.gif" style="border: solid 1px lightgrey;" /></kbd>
 
 ## Credits
 
