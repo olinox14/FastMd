@@ -24,7 +24,71 @@
 		"onLanguage:markdown"
 	],
 	"main": "./fullmd.js",
-	"contributes": {
+	"contributes": {        
+		"configuration": {
+			"type": "object",
+			"title": "FullMD",
+			"properties": {
+				"fullMd.boldMarker": {
+					"type": "string",
+					"default": "**",
+					"description": "Bold marker",
+					"enum": [
+						"__",
+						"**"
+					]
+				},
+				"fullMd.italicMarker": {
+					"type": "string",
+					"default": "*",
+					"description": "Italic marker",
+					"enum": [
+						"_",
+						"*"
+					]
+				},
+				"fullMd.uListMarker": {
+					"type": "string",
+					"default": "*",
+					"description": "Unordered lists symbol",
+					"enum": [
+						"-",
+						"*",
+						"+"
+					]
+				},
+				"fullMd.cleverUnlink": {
+                    "type": "boolean",
+					"default": false,
+					"description": "Enable clever unlinking"
+				},
+				"fullMd.autoPasteLinks": {
+                    "type": "boolean",
+					"default": true,
+					"description": "Enable autopaste for links"
+				},
+				"fullMd.autoRef": {
+                    "type": "boolean",
+					"default": true,
+					"description": "Enable auto-referencing for numeric links"
+				},
+				"fullMd.tabCodeBlock": {
+                    "type": "boolean",
+					"default": true,
+					"description": "Codeblocks are formatted with tab pattern (instead of ```code```)"
+				},
+				"fullMd.csvSeparators": {
+                    "type": "array",
+                    "default": [
+						",",
+						";",
+						"\t",
+						"|"
+					],
+					"description": "Chars recognized as CSV separators"
+				}
+			}
+		},
 		"commands": [
 			{
 				"command": "fullmd.addLinebreak",

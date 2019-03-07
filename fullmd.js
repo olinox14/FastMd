@@ -26,15 +26,20 @@ function activate(context) {
 
 	// *** Conf
 
-	const italicSymbol = '*';     // has to be one-character only
-	const uListSymbol = '*';     // has to be one-character only
-	const cleverUnlink = false;    // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
-	const autoPasteLinks = true;    // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
-	const autoRef = true;         // Move the url at the bottom of the document when numeric link reference formatting is applied
-	const tabCodeBlock = true;     // block of code are formatted with tab pattern (instead of ```code```)
-	const csvSeparators = ';\t|';  // symbols recognized as csv separators when inserting a table
+	// const italicMarker = '*';     // has to be one-character only
+	// const uListMarker = '*';     // has to be one-character only
+	// const cleverUnlink = false;    // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
+	// const autoPasteLinks = true;    // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
+	// const autoRef = true;         // Move the url at the bottom of the document when numeric link reference formatting is applied
+	// const tabCodeBlock = true;     // block of code are formatted with tab pattern (instead of ```code```)
+	// const csvSeparators = ';\t|';  // symbols recognized as csv separators when inserting a table
 
 	// *** Shorthands
+
+	/** return value from the current configuration */
+	function getConfig(key) { 
+		return vscode.workspace.getConfiguration('fullMd').get(key);
+	}
 
 	/** return the current text editor */
 	function editor() { return vscode.window.activeTextEditor; }
@@ -221,7 +226,7 @@ function activate(context) {
 	 *  Toggle the italic formatting
 	 */
 	function toggleItalic() {
-		return toggleSurrounding(italicSymbol);
+		return toggleSurrounding(getConfig('italicMarker'));
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleItalic', toggleItalic));
 	
@@ -229,7 +234,7 @@ function activate(context) {
 	 *  Toggle the bold formatting
 	 */
 	function toggleBold() {
-		return toggleSurrounding('**');
+		return toggleSurrounding(getConfig('boldMarker'));
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleBold', toggleBold));
 	
@@ -290,7 +295,7 @@ function activate(context) {
 
 		match = wordText.match(/^\[(.+)\]\((.+)\)$/);
 		if (match) {
-			if (cleverUnlink) {
+			if (getConfig('cleverUnlink')) {
 				vscode.env.clipboard.writeText(match[2]).then();
 
 				return editor().edit(async function(edit) {
@@ -345,7 +350,7 @@ function activate(context) {
 		}
 
 		// non-url formatted word: apply the [title](url) format, with word as title
-		if (autoPasteLinks) {
+		if (getConfig('autoPasteLinks')) {
 			return vscode.env.clipboard.readText().then((content) => {
 				content = content.trim();
 				if (content.match(new RegExp('^' + srx_url + '$'))) {
@@ -434,7 +439,8 @@ function activate(context) {
 		let wordText = editor().document.getText(word);
 		let match;
 		let url;
-		
+		let autoRef = getConfig('autoRef');
+
 		match = wordText.match(/^\[(.+)\]\((.+)\)$/);
 		if (match) {
 			if (autoRef) {
@@ -674,7 +680,7 @@ function activate(context) {
 		} ).then((b) => {
 			setPosition(position().line, word.end.character + 4);
 
-			if (autoPasteLinks) {
+			if (getConfig('autoPasteLinks')) {
 				vscode.env.clipboard.readText().then((content)=>{
 					content = content.trim();
 					if (content.match(new RegExp('^' + srx_url + '$'))) {
@@ -808,7 +814,7 @@ function activate(context) {
 
 				if (sel.isEqual(line.range) || sel.isEqual(line.rangeIncludingLineBreak)) {
 					// same line, whole line
-					if (tabCodeBlock) {
+					if (getConfig('tabCodeBlock')) {
 						return editor().edit((edit) => {
 							edit.replace(sel, '\n    ' + selected_text + '\n\n');
 						});
@@ -825,7 +831,7 @@ function activate(context) {
 					});
 				}
 			} else {
-				if (tabCodeBlock) {
+				if (getConfig('tabCodeBlock')) {
 					return editor().edit((edit) => {
 						edit.replace(sel, '\n    ' + selected_text.replace(/\n/g, '\n    ') + '\n\n');
 					});
@@ -859,7 +865,9 @@ function activate(context) {
 	 *  Toggle the unordered-list formatting
 	 */
 	function toggleUList() {
-		return prefixLines(((lineText) => uListSymbol + ' ' + lineText), /[\*+-]/);
+		const uListMarker = vscode.workspace.getConfiguration('fullMd').get('uListMarker');
+
+		return prefixLines(((lineText) => uListMarker + ' ' + lineText), /[\*+-]/);
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fullmd.toggleUList', toggleUList));
 	
@@ -908,6 +916,7 @@ function activate(context) {
 	 */
 	function insertTable() {
 		var sel = selection();
+		let csvSeparators = getConfig('csvSeparators');
 		if (!sel.isEmpty) {
 			var selectedText = editor().document.getText(sel).trim();
 			if (sel.isSingleLine) {
