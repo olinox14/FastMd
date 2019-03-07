@@ -60,17 +60,17 @@
 				"fullMd.cleverUnlink": {
                     "type": "boolean",
 					"default": false,
-					"description": "Enable clever unlinking"
+					"description": "Allows to unlink a [title](url) with toggleLink; the existing url is written to the clipboard"
 				},
 				"fullMd.autoPasteLinks": {
                     "type": "boolean",
 					"default": true,
-					"description": "Enable autopaste for links"
+					"description": "An url found in the clipboard is automatically pasted on toggleLink use"
 				},
 				"fullMd.autoRef": {
                     "type": "boolean",
 					"default": true,
-					"description": "Enable auto-referencing for numeric links"
+					"description": "Move the url at the bottom of the document when numeric link reference formatting is applied"
 				},
 				"fullMd.tabCodeBlock": {
                     "type": "boolean",
@@ -78,14 +78,9 @@
 					"description": "Codeblocks are formatted with tab pattern (instead of ```code```)"
 				},
 				"fullMd.csvSeparators": {
-                    "type": "array",
-                    "default": [
-						",",
-						";",
-						"\t",
-						"|"
-					],
-					"description": "Chars recognized as CSV separators"
+                    "type": "string",
+                    "default": ",;\t|",
+					"description": "Chars recognized as CSV separators for insertTable use"
 				}
 			}
 		},

@@ -24,16 +24,6 @@ function mdEscape(text) {
  */
 function activate(context) {
 
-	// *** Conf
-
-	// const italicMarker = '*';     // has to be one-character only
-	// const uListMarker = '*';     // has to be one-character only
-	// const cleverUnlink = false;    // allows to unlink a [title](url) with ctrl+l; the url is written to the clipboard
-	// const autoPasteLinks = true;    // an url found the clipboard is automatically pasted when a word is formatted with ctrl+l
-	// const autoRef = true;         // Move the url at the bottom of the document when numeric link reference formatting is applied
-	// const tabCodeBlock = true;     // block of code are formatted with tab pattern (instead of ```code```)
-	// const csvSeparators = ';\t|';  // symbols recognized as csv separators when inserting a table
-
 	// *** Shorthands
 
 	/** return value from the current configuration */
