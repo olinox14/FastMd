@@ -1025,7 +1025,7 @@ function activate(context) {
 		var nbCols = line.text.split('|').length - 1;
 
 		return editor().edit((edit) => {
-			edit.insert(new vscode.Position(endLine + 1, 0), '\n|' + new Array(nbCols).join('   |') + '\n');
+			edit.replace(new vscode.Range(line.range.end, line.rangeIncludingLineBreak.end), '\n|' + new Array(nbCols).join('   |') + '\n');
 		});
 	}
 	context.subscriptions.push(vscode.commands.registerCommand('fullmd.tableAddRow', tableAddRow));
