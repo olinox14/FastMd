@@ -15,33 +15,33 @@
 ## Usage
 
 ### Keys
-
+<kbd>B</kbd>   
 | Keys | Command |
 | ----- | ----- |
-| Alt + Enter | Insert a **line break** |
-| Ctrl + / | **Escape** special characters from the selection |
-| Ctrl + D | Increase the **header** level |
-| Ctrl + Shift + D | Decrease the **header** level |
-| Ctrl + Shift + [Num] | Set the **header**'s level (from 1 to 5) |
-| Ctrl + Shift + 9 | Remove the **header**'s formatting |
-| Ctrl + I | Toggle **italic** format |
-| Ctrl + B | Toggle **bold** format |
-| Ctrl + Alt + S | Toggle **striketrough** format |
-| Ctrl + L | Toggle **link** format |
-| Ctrl + [Num] | Toggle **numeric-style link** format |
-| Ctrl + G | Toggle **image**-link format |
-| Ctrl + Q | Toggle **blockquote** |
-| Ctrl + R | Insert **horizontal ruler**  |
-| Ctrl + K | Toggle **code-block** format |
-| Ctrl + U | Toggle **unordered list** format |
-| Ctrl + O | Toggle **ordered list** format  |
-| Alt + X | Toggle **checklist** format   |
-| Alt + C | **Check / uncheck** current item of a checklist |
-| Ctrl + T  T |  Insert or format a **table** |
-| Ctrl + T  Right | **Add a column** to the current table  |
-| Ctrl + T  Down | **Add a row** to the current table |
-| Alt+Z | Toggle **Zen Mode** |
-| Alt+V | Show **side-preview** |
+| <kbd>Alt</kbd> + <kbd>Enter</kbd>  | Insert a **line break** |
+| <kbd>Ctrl</kbd> + <kbd>/</kbd>  | **Escape** special characters from the selection |
+| <kbd>Ctrl</kbd> + <kbd>D</kbd>  | Increase the **header** level |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd>  + <kbd>D</kbd> | Decrease the **header** level |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd>  + <kbd>[Num]</kbd> | Set the **header**'s level (from 1 to 5) |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd>  + <kbd>9</kbd> | Remove the **header**'s formatting |
+| <kbd>Ctrl</kbd> + <kbd>I</kbd>  | Toggle **italic** format |
+| <kbd>Ctrl</kbd> + <kbd>B</kbd>  | Toggle **bold** format |
+| <kbd>Ctrl</kbd> + <kbd>Alt</kbd>  + <kbd>S</kbd> | Toggle **striketrough** format |
+| <kbd>Ctrl</kbd> + <kbd>L</kbd>  | Toggle **link** format |
+| <kbd>Ctrl</kbd> + <kbd>[Num]</kbd>  | Toggle **numeric-style link** format |
+| <kbd>Ctrl</kbd> + <kbd>G</kbd>  | Toggle **image**-link format |
+| <kbd>Ctrl</kbd> + <kbd>Q</kbd>  | Toggle **blockquote** |
+| <kbd>Ctrl</kbd> + <kbd>R</kbd>  | Insert **horizontal ruler**  |
+| <kbd>Ctrl</kbd> + <kbd>K</kbd>  | Toggle **code-block** format |
+| <kbd>Ctrl</kbd> + <kbd>U</kbd>  | Toggle **unordered list** format |
+| <kbd>Ctrl</kbd> + <kbd>O</kbd>  | Toggle **ordered list** format  |
+| <kbd>Alt</kbd> + <kbd>X</kbd>  | Toggle **checklist** format   |
+| <kbd>Alt</kbd> + <kbd>C</kbd>  | **Check / uncheck** current item of a checklist |
+| <kbd>Ctrl</kbd> + <kbd>T</kbd>   <kbd>T</kbd> |  Insert or format a **table** |
+| <kbd>Ctrl</kbd> + <kbd>T</kbd>   <kbd>Right</kbd> | **Add a column** to the current table  |
+| <kbd>Ctrl</kbd> + <kbd>T</kbd>   <kbd>Down</kbd> | **Add a row** to the current table |
+| <kbd>Alt</kbd> + <kbd>Z</kbd>  | Toggle **Zen Mode** |
+| <kbd>Alt</kbd> + <kbd>V</kbd>  | Show **side-preview** |
 
 ### Line-breaks
 
